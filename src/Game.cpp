@@ -10,11 +10,22 @@
  */                    
 
 #include "raylib.h"
+#include "raymath.h"
+#include <iostream>
+#include "stdlib.h"
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
-typedef enum GameScreen { LOGO = 0, TITLE, GAMEPLAY, ENDING } GameScreen;
+typedef enum GameScreen { LOGO = 0, TITLE = 1, GAMEPLAY = 2, ENDING = 3} GameScreen;
+
+struct Symbol
+{
+	Vector2 position;
+	Vector2 target_pos;
+	int type;
+	bool isNull;
+};
 
 //----------------------------------------------------------------------------------
 // Main entry point
@@ -23,18 +34,26 @@ int main(void)
 {
     // Initialization (Note windowTitle is unused on Android)
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+    const int screenWidth = 1280;
+    const int screenHeight = 720;
+	const int gridWidth = 5;
+	const int gridHeight = 8;
 
     InitWindow(screenWidth, screenHeight, "Swave");
 
     GameScreen currentScreen = LOGO;
 
-    // TODO: Initialize all required variables and load all required data here!
+    // Initialize variables
 
-    int framesCounter = 0;          // Useful to count frames
+	const Vector2 gridPosition = { 100, 100 };
 
-    SetTargetFPS(60);               // Set desired framerate (frames-per-second)
+	// Initalize the grid, element access with [x][y]
+    Symbol grid[gridWidth][gridHeight] = {};
+
+    int framesCounter = 0;
+
+    SetTargetFPS(60);
+
     //--------------------------------------------------------------------------------
     
     // Main game loop
