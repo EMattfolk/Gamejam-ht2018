@@ -23,7 +23,7 @@ struct Symbol
 {
 	Vector2 position;
 	Vector2 target_pos;
-	int type;
+        int type;
 	bool isNull;
 };
 
@@ -48,6 +48,7 @@ int main(void)
 	 */
 
 	const Vector2 gridPosition = { 100, 100 };
+	const Vector2 backgroundPosition = { 0, 0 };
 
 	// Initalize the grid, element access with [x][y]
     Symbol grid[gridWidth][gridHeight] = {};
@@ -59,6 +60,7 @@ int main(void)
 	 */
 
 	Texture2D gridSprite = LoadTexture("src/gridSprite.png");
+	Texture2D backgroundSprite = LoadTexture("src/temp_background.jpg");
 
     SetTargetFPS(60);
 
@@ -90,7 +92,7 @@ int main(void)
                 // Press enter to change to GAMEPLAY screen
                 if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
                 {
-                    currentScreen = GAMEPLAY;
+		    currentScreen = GAMEPLAY;
                 }
             } break;
             case GAMEPLAY:
@@ -128,7 +130,8 @@ int main(void)
                 case LOGO: 
                 {
                     // TODO: Draw LOGO screen here!
-                    DrawText("LOGO SCREEN", 20, 20, 40, LIGHTGRAY);
+		    DrawTextureEX(backgroundSprite, Vector2 position, float rotation, float scale, Color tint);
+		    DrawText("LOGO SCREEN", 20, 20, 40, LIGHTGRAY);
                     DrawText("WAIT for 2 SECONDS...", 290, 220, 20, GRAY);
                     
                 } break;
