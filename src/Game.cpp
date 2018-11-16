@@ -12,6 +12,7 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "stdlib.h"
+#include "time.h"
 #include <iostream>
 
 //----------------------------------------------------------------------------------
@@ -36,10 +37,16 @@ int main(void)
     //--------------------------------------------------------------------------------------
     const int screenWidth = 1280;
     const int screenHeight = 720;
+	const int symbolCount = 4;
 	const int gridWidth = 5;
 	const int gridHeight = 8;
+	const float gridScale = 3.0f;
+	const Vector2 gridPosition = { 500, 100 };
 
     InitWindow(screenWidth, screenHeight, "Swave");
+
+	// Initalize rand
+	srand(time(NULL));
 
     GameScreen currentScreen = LOGO;
 
@@ -47,10 +54,20 @@ int main(void)
 	 * Initialize variables
 	 */
 
-	const Vector2 gridPosition = { 100, 100 };
-
 	// Initalize the grid, element access with [x][y]
     Symbol grid[gridWidth][gridHeight] = {};
+
+	for (int i = 0; i < gridWidth; i++)
+	{
+		for (int j = 0; j < gridHeight; j++)
+		{
+			grid[i][j] = {
+				{ (float) i, (float) j },
+				{ (float) i, (float) j },
+				rand() % symbolCount,
+				false};
+		}
+	}
 
     int framesCounter = 0;
 
@@ -143,7 +160,7 @@ int main(void)
                 case GAMEPLAY:
                 { 
 					// Draw the game
-					DrawTexture(gridSprite, gridPosition.x, gridPosition.y, (Color){255,255,255,255});
+					DrawTextureEx(gridSprite, gridPosition, 0, gridScale, (Color){255,255,255,255});
                 } break;
                 case ENDING: 
                 {
