@@ -11,8 +11,8 @@
 
 #include "raylib.h"
 #include "raymath.h"
-#include <iostream>
 #include "stdlib.h"
+#include <iostream>
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
@@ -43,7 +43,9 @@ int main(void)
 
     GameScreen currentScreen = LOGO;
 
-    // Initialize variables
+    /* 
+	 * Initialize variables
+	 */
 
 	const Vector2 gridPosition = { 100, 100 };
 
@@ -51,6 +53,12 @@ int main(void)
     Symbol grid[gridWidth][gridHeight] = {};
 
     int framesCounter = 0;
+
+	/*
+	 * Initialize textures
+	 */
+
+	Texture2D gridSprite = LoadTexture("src/gridSprite.png");
 
     SetTargetFPS(60);
 
@@ -134,11 +142,8 @@ int main(void)
                 } break;
                 case GAMEPLAY:
                 { 
-                    // TODO: Draw GAMEPLAY screen here!
-                    DrawRectangle(0, 0, screenWidth, screenHeight, PURPLE);
-                    DrawText("GAMEPLAY SCREEN", 20, 20, 40, MAROON);
-                    DrawText("PRESS ENTER or TAP to JUMP to ENDING SCREEN", 130, 220, 20, MAROON);
-
+					// Draw the game
+					DrawTexture(gridSprite, gridPosition.x, gridPosition.y, (Color){255,255,255,255});
                 } break;
                 case ENDING: 
                 {
@@ -158,7 +163,11 @@ int main(void)
     // De-Initialization
     //--------------------------------------------------------------------------------
     
-    // TODO: Unload all loaded data (textures, fonts, audio) here!
+	/*
+	 * Unload images, fonts, audio
+	 */
+
+    UnloadTexture(gridSprite);
     
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------
