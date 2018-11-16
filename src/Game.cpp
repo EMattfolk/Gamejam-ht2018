@@ -26,7 +26,7 @@ int main(void)
     const int screenWidth = 800;
     const int screenHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib template - simple game");
+    InitWindow(screenWidth, screenHeight, "Swave");
 
     GameScreen currentScreen = LOGO;
 
