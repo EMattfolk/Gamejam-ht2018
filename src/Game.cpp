@@ -26,23 +26,23 @@
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
-typedef enum GameScreen { LOGO = 0, TITLE = 1, GAMEPLAY = 2, ENDING = 3} GameScreen;
+typedef enum GameScreen { LOGO = 0, SPLASH = 1,TITLE = 2, GAMEPLAY = 3, ENDING = 4} GameScreen;
 
 struct Symbol
 {
-	Vector2 position;
-	Vector2 target_pos;
+    Vector2 position;
+    Vector2 target_pos;
     int type;
-	bool isNull;
-	bool marked;
+    bool isNull;
+    bool marked;
 };
 
 struct Streak
 {
-	Vector2 start;
-	int length;
-	int type;
-	bool horiz;
+    Vector2 start;
+    int length;
+    int type;
+    bool horiz;
 };
 struct intTrio
 {
@@ -79,6 +79,7 @@ int main(void)
     const float gridScale = 3.0f;
     const int cellSize = 19;
     const int cellOffset = 1;
+    const int fadeInTime = 900;  
     const Vector2 gridPosition = { (screenWidth/2)-38*gameScale , (screenHeight/2) - 79* gameScale};
     const Vector2 backgroundPosition {0,0};
     InitWindow(screenWidth, screenHeight, "S-Wave");
@@ -89,6 +90,7 @@ int main(void)
 
     // Initialize variables
     intTrio aniTrio = {0,0,0};
+    GameScreen targetScreen = TITLE;
 
 
     // Initalize the grid, element access with [x][y]
@@ -148,9 +150,19 @@ int main(void)
 	    LoadTexture("src/sprites/background5.png")
 	};
 
+	Texture2D buttonSprites [] =
+	{
+	    LoadTexture("src/sprites/play_button.png"),
+	    LoadTexture("src/sprites/score_button.png")
+
+	};
+
 	Texture2D backgroundHouseSprite = LoadTexture("src/sprites/buildings.png");
 
-
+	Texture2D dadzLogoSprite = LoadTexture("src/sprites/the_dadz_logo.png");
+	Texture2D sWaveLogoSprite = LoadTexture("src/sprites/s-wave_logo.png");
+	Texture2D presLogoSprite = LoadTexture("src/sprites/presents.png");
+	
 	Texture2D symbolSprites [] = 
 	{
 		LoadTexture("src/sprites/bowtie_sprite.png"),
@@ -177,10 +189,24 @@ int main(void)
 
                 framesCounter++;    // Count frames
 
-                // Wait for 2 seconds (120 frames) before jumping to TITLE screen
-                if (framesCounter > 120)
+                // Wait for fadeInTime before jumping to TITLE screen
+                if (framesCounter > fadeInTime)
                 {
-                    currentScreen = TITLE;
+		    currentScreen = TITLE;
+		    framesCounter = 0;
+                }
+            } break;
+	    case SPLASH: 
+            {
+                // TODO: Update LOGO screen variables here!
+
+                framesCounter++;    // Count frames
+
+                // Wait for fadeInTime before jumping to TITLE screen
+                if (framesCounter > fadeInTime/3)
+                {
+                    currentScreen = targetScreen;
+		    framesCounter = 0;
                 }
             } break;
             case TITLE: 
@@ -191,8 +217,8 @@ int main(void)
       
 		if (IsKeyPressed(KEY_ENTER) || (IsGestureDetected(GESTURE_TAP) &&  MouseRightPos( GetMouseX(),  GetMouseY(), (screenWidth/2) - 50*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale)))
                 {
-
-                    currentScreen = GAMEPLAY;
+		    targetScreen = GAMEPLAY;
+                    currentScreen = SPLASH;
                 } 
 
             } break;
@@ -298,25 +324,25 @@ int main(void)
             {
                 case LOGO: 
                 {
-                    // TODO: Draw LOGO screen here!
-		    //Recives the correct position modifers from the function
-		    aniTrio = BackgroundAnimation(aniTrio.timer, aniTrio.houseCycle, aniTrio.skyCycle );
-		    
-		    // Applies the houseCycle modifer to the house textture pos
-		    float houseY =  ((22 * gameScale)*sinf(aniTrio.houseCycle/30.55775f))+22*gameScale;
-		    Vector2 housePosition = (Vector2) {0, houseY}; 
-
-		    //Draws the Background and Houses
-		    DrawTextureEx(backgroundSprites[aniTrio.skyCycle], backgroundPosition, 0, gridScale, (Color){255,255,255,255});
-		    DrawTextureEx(backgroundHouseSprite, housePosition, 0, gridScale, (Color){255,255,255,255});
-
-		    //Draws the sonic like text background
-		    DrawRectangle(0, 100, (screenWidth/3)*2, 80, BLACK);
-
-		    //Draws the text
-		    DrawText("LOGO SCREEN", 0, 110, 40, WHITE);
-                    DrawText("WAIT for 2 SECONDS...", 0, 150, 20, GRAY);
-                    
+		    DrawRectangle( 0,0, screenWidth, screenHeight, BLACK);
+		    if (framesCounter < 300)
+		    {
+			DrawTextureEx(dadzLogoSprite, Vector2{(screenWidth/2)-85*gameScale,(screenHeight/2)-44*gameScale}, 0, (gridScale/3), (Color){255,255,255,(255*sin(framesCounter*0.01047198))});
+		    }
+		    else if(framesCounter < 600)
+		    {
+			DrawTextureEx(presLogoSprite, Vector2{(screenWidth/2)-85*gameScale,(screenHeight/2)-44*gameScale}, 0, (gridScale/3), (Color){255,255,255,(255*sin((framesCounter-300)*0.01047198))});
+		    }
+		    else if(framesCounter < 900)
+		    {
+			DrawTextureEx(sWaveLogoSprite, Vector2{(screenWidth/2)-103*gameScale,(screenHeight/2)-44*gameScale}, 0, (gridScale/3), (Color){255,255,255,(255*sin((framesCounter-600)*0.01047198))});
+		    }
+                } break;
+	        case SPLASH: 
+                {
+                    DrawRectangle( 0,0, screenWidth, screenHeight, BLACK);
+		    DrawTextureEx(sWaveLogoSprite, Vector2{(screenWidth/2)-103*gameScale,(screenHeight/2)-44*gameScale}, 0, (gridScale/3), (Color){255,255,255,(255*sin(framesCounter*0.01047198))});
+			
                 } break;
                 case TITLE: 
                 {
@@ -337,16 +363,19 @@ int main(void)
 		    DrawRectangle(0, 100, (screenWidth/3)*2, 80, BLACK);
 
 		    //Draws the button shadow
-		    DrawRectangle( (screenWidth/2) - 49*gameScale, (screenHeight/3)* 2+1*gameScale, 41*gameScale, 21*gameScale, BLACK);
-		    DrawRectangle( (screenWidth/2) + 11*gameScale, (screenHeight/3)* 2+1*gameScale, 41*gameScale, 21*gameScale, BLACK);
+		    DrawRectangle( (screenWidth/2) - 49*gameScale, (screenHeight/3)* 2+1*gameScale, 41*gameScale, 21*gameScale, (Color){0,0,0,64});
+		    DrawRectangle( (screenWidth/2) + 11*gameScale, (screenHeight/3)* 2+1*gameScale, 41*gameScale, 21*gameScale, (Color){0,0,0,64});
 
 		    //Draws the buttons
-		    DrawRectangle( (screenWidth/2) - 50*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale, DARKBLUE);
-		    DrawRectangle( (screenWidth/2) + 10*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale, DARKBLUE);
+		    DrawTextureEx(buttonSprites[0], Vector2 {(screenWidth/2) - 50*gameScale, (screenHeight/3)*2}, 0, gridScale, (Color){255,255,255,255});
+		    DrawTextureEx(buttonSprites[1], Vector2 {(screenWidth/2) + 10*gameScale, (screenHeight/3)*2}, 0, gridScale, (Color){255,255,255,255});
+
+		    // DrawRectangle( (screenWidth/2) - 50*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale, DARKBLUE);
+		    // DrawRectangle( (screenWidth/2) + 10*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale, DARKBLUE);
 		    
 		    //Draws both the button text and Background text
-		    DrawText("RUN", (screenWidth/2) - 49*gameScale, (screenHeight/3)* 2+gameScale, 58, (Color){233,0,132,255});
-                    DrawText("SCORE", (screenWidth/2) + 11*gameScale, ((screenHeight/3)+7) * 2+gameScale, 34, (Color){233,0,132,255});
+		    // DrawText("RUN", (screenWidth/2) - 49*gameScale, (screenHeight/3)* 2+gameScale, 58, (Color){233,0,132,255});
+                    // DrawText("SCORE", (screenWidth/2) + 11*gameScale, ((screenHeight/3)+7) * 2+gameScale, 34, (Color){233,0,132,255});
 		    DrawText("S-Wave Unlimited", 0, 110, 40, WHITE);
                     DrawText("Play the game or see the leaderboard!", 0, 150, 20, GRAY);
                     
@@ -416,7 +445,14 @@ int main(void)
     {
 	UnloadTexture(backgroundSprites[i]);
     }
-
+        for(int i = 0; i < 2; i++)
+    {
+	UnloadTexture(buttonSprites[i]);
+    }
+    
+    UnloadTexture(dadzLogoSprite);
+    UnloadTexture(sWaveLogoSprite);
+    UnloadTexture(presLogoSprite);
     UnloadTexture(backgroundHouseSprite);
 
     UnloadTexture(backgroundSprite);
