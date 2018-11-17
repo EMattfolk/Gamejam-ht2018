@@ -172,7 +172,6 @@ int main(void)
 
 	Texture2D downArrowSprite = LoadTexture("src/sprites/arrow_down_sprite.png");
 
-
 	Texture2D dadzLogoSprite = LoadTexture("src/sprites/the_dadz_logo.png");
 	Texture2D sWaveLogoSprite = LoadTexture("src/sprites/s-wave_logo.png");
 	Texture2D presLogoSprite = LoadTexture("src/sprites/presents.png");
@@ -231,8 +230,7 @@ int main(void)
       
 		if (IsKeyPressed(KEY_ENTER) || (IsGestureDetected(GESTURE_TAP) &&  MouseRightPos( GetMouseX(),  GetMouseY(), (screenWidth/2) - 50*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale)))
                 {
-
-            		    targetScreen = GAMEPLAY;
+		    targetScreen = GAMEPLAY;
                     currentScreen = SPLASH;
 
                 } 
