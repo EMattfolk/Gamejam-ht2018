@@ -44,13 +44,19 @@ struct Streak
 	int type;
 	bool horiz;
 };
-
+struct intTrio
+{
+    int timer;
+    int houseCycle;
+    int skyCycle;
+}; 
 Vector2 GetGridPosition(Vector2, Vector2, int, int, float, int, int);
 bool MouseRightPos(int, int, int, int, int, int);
 bool IsValidMove(Vector2, Vector2);
 std::vector<Streak> GetStreaks(Symbol[][8], int, int);
 void MarkStreaks(Symbol[][8], std::vector<Streak>);
 void InitGrid(Symbol[][8], int, int, int);
+intTrio BackgroundAnimation(int,int,int);
 void RespawnSymbols(Symbol[][8], int, int, int);
 
 
@@ -67,7 +73,7 @@ int main(void)
     const int screenHeight = 214 *gameScale;
     const int symbolCount = 4;
     const int symbolOffset = 1;
-	const float symbolSpeed = 1.0f/16;
+    const float symbolSpeed = 1.0f/16;
     const int gridWidth = 5;
     const int gridHeight = 8;
     const float gridScale = 3.0f;
@@ -77,18 +83,17 @@ int main(void)
     const Vector2 backgroundPosition {0,0};
     InitWindow(screenWidth, screenHeight, "S-Wave");
 
-	// Initalize rand
-	srand(time(NULL));
+    // Initalize rand
+    srand(time(NULL));	
+    GameScreen currentScreen = LOGO; 
 
-    GameScreen currentScreen = LOGO;
+    // Initialize variables
+    intTrio aniTrio = {0,0,0};
 
-    /* 
-	 * Initialize variables
-	 */
 
-	// Initalize the grid, element access with [x][y]
+    // Initalize the grid, element access with [x][y]
     Symbol grid[gridWidth][gridHeight] = {};
-	InitGrid(grid, gridWidth, gridHeight, symbolCount);
+    InitGrid(grid, gridWidth, gridHeight, symbolCount);
 
 	// Remove eventual streaks from initial configuration
 	std::vector<Streak> streaks = GetStreaks(grid, gridWidth, gridHeight);
@@ -124,9 +129,9 @@ int main(void)
 	// -1, -1 means there was no cell
 	Vector2 clickedCell = (Vector2){-1, -1};
 
-    int framesCounter = 0;
+        int framesCounter = 0;
 
-	/*
+         /*
 	 * Initialize textures
 	 */
 
@@ -134,14 +139,17 @@ int main(void)
 
 	Texture2D backgroundSprite =  LoadTexture("src/sprites/temp_background.png");
 
-	// Texture2D backgroundSprite [] =
-	// {
-	//     LoadTexture("src/sprites/background1.png");
-	//     LoadTexture("src/sprites/background2.png");
-	//     LoadTexture("src/sprites/background3.png");
-	//     LoadTexture("src/sprites/background4.png");
-	//     LoadTexture("src/sprites/background5.png");
-	// };
+	Texture2D backgroundSprites [] =
+	{
+	    LoadTexture("src/sprites/background1.png"),
+	    LoadTexture("src/sprites/background2.png"),
+	    LoadTexture("src/sprites/background3.png"),
+	    LoadTexture("src/sprites/background4.png"),
+	    LoadTexture("src/sprites/background5.png")
+	};
+
+	Texture2D backgroundHouseSprite = LoadTexture("src/sprites/buildings.png");
+
 
 	Texture2D symbolSprites [] = 
 	{
@@ -179,7 +187,7 @@ int main(void)
             {
                 // TODO: Update TITLE screen variables here!
 
-                // Press enter to change to GAMEPLAY screen 
+                // Press enter or the button to change the screen 
       
 		if (IsKeyPressed(KEY_ENTER) || (IsGestureDetected(GESTURE_TAP) &&  MouseRightPos( GetMouseX(),  GetMouseY(), (screenWidth/2) - 50*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale)))
                 {
@@ -291,8 +299,21 @@ int main(void)
                 case LOGO: 
                 {
                     // TODO: Draw LOGO screen here!
-		    DrawTextureEx(backgroundSprite, backgroundPosition, 0, gridScale, (Color){255,255,255,255});
-		    DrawRectangle(0, 100, 214*gameScale, 80, BLACK);
+		    //Recives the correct position modifers from the function
+		    aniTrio = BackgroundAnimation(aniTrio.timer, aniTrio.houseCycle, aniTrio.skyCycle );
+		    
+		    // Applies the houseCycle modifer to the house textture pos
+		    float houseY =  ((22 * gameScale)*sinf(aniTrio.houseCycle/30.55775f))+22*gameScale;
+		    Vector2 housePosition = (Vector2) {0, houseY}; 
+
+		    //Draws the Background and Houses
+		    DrawTextureEx(backgroundSprites[aniTrio.skyCycle], backgroundPosition, 0, gridScale, (Color){255,255,255,255});
+		    DrawTextureEx(backgroundHouseSprite, housePosition, 0, gridScale, (Color){255,255,255,255});
+
+		    //Draws the sonic like text background
+		    DrawRectangle(0, 100, (screenWidth/3)*2, 80, BLACK);
+
+		    //Draws the text
 		    DrawText("LOGO SCREEN", 0, 110, 40, WHITE);
                     DrawText("WAIT for 2 SECONDS...", 0, 150, 20, GRAY);
                     
@@ -300,47 +321,66 @@ int main(void)
                 case TITLE: 
                 {
                     // TODO: Draw TITLE screen here!
-		    DrawTextureEx(backgroundSprite, backgroundPosition, 0, gridScale, (Color){255,255,255,255});
-		    DrawRectangle(0, 100, 214*gameScale, 80, BLACK);
 
+		    //Recives the correct position modifers from the function
+		    aniTrio = BackgroundAnimation(aniTrio.timer, aniTrio.houseCycle, aniTrio.skyCycle );
+		    
+		    // Applies the houseCycle modifer to the house textture pos
+		    float houseY =  ((22 * gameScale)*sinf(aniTrio.houseCycle/30.55775f))+22*gameScale;
+		    Vector2 housePosition = (Vector2) {0, houseY}; 
 
+		    //Draws the Background and Houses
+		    DrawTextureEx(backgroundSprites[aniTrio.skyCycle], backgroundPosition, 0, gridScale, (Color){255,255,255,255});
+		    DrawTextureEx(backgroundHouseSprite, housePosition, 0, gridScale, (Color){255,255,255,255});
+
+		    //Draws the sonic like text background
+		    DrawRectangle(0, 100, (screenWidth/3)*2, 80, BLACK);
+
+		    //Draws the button shadow
 		    DrawRectangle( (screenWidth/2) - 49*gameScale, (screenHeight/3)* 2+1*gameScale, 41*gameScale, 21*gameScale, BLACK);
 		    DrawRectangle( (screenWidth/2) + 11*gameScale, (screenHeight/3)* 2+1*gameScale, 41*gameScale, 21*gameScale, BLACK);
 
+		    //Draws the buttons
 		    DrawRectangle( (screenWidth/2) - 50*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale, DARKBLUE);
 		    DrawRectangle( (screenWidth/2) + 10*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale, DARKBLUE);
 		    
-
+		    //Draws both the button text and Background text
 		    DrawText("RUN", (screenWidth/2) - 49*gameScale, (screenHeight/3)* 2+gameScale, 58, (Color){233,0,132,255});
                     DrawText("SCORE", (screenWidth/2) + 11*gameScale, ((screenHeight/3)+7) * 2+gameScale, 34, (Color){233,0,132,255});
 		    DrawText("S-Wave Unlimited", 0, 110, 40, WHITE);
-                    DrawText("PRESS ENTER or TAP to JUMP to GAMEPLAY SCREEN", 0, 150, 20, GRAY);
+                    DrawText("Play the game or see the leaderboard!", 0, 150, 20, GRAY);
                     
                 } break;
                 case GAMEPLAY:
                 { 
-					// Draw the game
 
-					// Draw background
-		            DrawTextureEx(backgroundSprite, backgroundPosition, 0, gridScale, (Color){255,255,255,255});
+		    // DRAW THE GAME
+		    //Recives the correct position modifers from the function
+		    aniTrio = BackgroundAnimation(aniTrio.timer, aniTrio.houseCycle, aniTrio.skyCycle );
+		    
+		    // Applies the houseCycle modifer to the house textture pos
+		    float houseY =  ((11 * gameScale)*sinf(aniTrio.houseCycle/30.55775f))+11*gameScale;
+		    Vector2 housePosition = (Vector2) {0, houseY}; 
 
-					// Draw a black rectangle for increased visibility
-					DrawRectangle( (screenWidth/2)-38*gameScale , (screenHeight/2) - 79* gameScale, 96*gameScale, 153*gameScale, BLACK);
+		    // Draws the Background and Houses
+		    DrawTextureEx(backgroundSprites[aniTrio.skyCycle], backgroundPosition, 0, gridScale, (Color){255,255,255,255});
+		    DrawTextureEx(backgroundHouseSprite, housePosition, 0, gridScale, (Color){255,255,255,255});
 
-					// Draw grid
-					DrawTextureEx(gridSprite, gridPosition, 0, gridScale, (Color){255,255,255,255});
-					// Draw the symbols
-					for (int i = 0; i < gridWidth; i++)
-					{
-						for (int j = 0; j < gridHeight; j++)
-						{
-							float drawX, drawY;
-							drawX = gridPosition.x + (cellOffset + symbolOffset) * gridScale + cellSize * gridScale * grid[i][j].position.x;
-							drawY = gridPosition.y + (cellOffset + symbolOffset) * gridScale + cellSize * gridScale * grid[i][j].position.y;
-							Vector2 symbolPos = (Vector2) { (int)drawX, (int)drawY };
-							DrawTextureEx(symbolSprites[grid[i][j].type], symbolPos, 0, gridScale, (Color){255,255,255,255});
-						}
-					}
+		    // DRAW THE GRID
+		    // DrawRectangle( (screenWidth/2)-38*gameScale , (screenHeight/2) - 79* gameScale, 96*gameScale, 153*gameScale, BLACK); Dis dos black box behind grid
+		    DrawTextureEx(gridSprite, gridPosition, 0, gridScale, (Color){255,255,255,255});
+		    // DRAW THE SYMBOLS
+		    for (int i = 0; i < gridWidth; i++)
+		    {
+			for (int j = 0; j < gridHeight; j++)
+			{
+			    float drawX, drawY;
+			    drawX = gridPosition.x + (cellOffset + symbolOffset) * gridScale + cellSize * gridScale * grid[i][j].position.x;
+			    drawY = gridPosition.y + (cellOffset + symbolOffset) * gridScale + cellSize * gridScale * grid[i][j].position.y;
+			    Vector2 symbolPos = (Vector2) { (int)drawX, (int)drawY };
+			    DrawTextureEx(symbolSprites[grid[i][j].type], symbolPos, 0, gridScale, (Color){255,255,255,255});
+			}
+		    }
 
                 } break;
                 case ENDING: 
@@ -366,6 +406,19 @@ int main(void)
 	 */
 
     UnloadTexture(gridSprite);
+    
+    for(int i = 0; i < 4; i++)
+    {
+	UnloadTexture(symbolSprites[i]);
+    }
+
+    for(int i = 0; i < 5; i++)
+    {
+	UnloadTexture(backgroundSprites[i]);
+    }
+
+    UnloadTexture(backgroundHouseSprite);
+
     UnloadTexture(backgroundSprite);
     
     CloseWindow();        // Close window and OpenGL context
@@ -389,9 +442,10 @@ Vector2 GetGridPosition (Vector2 mousePos, Vector2 gridPos, int cellOffset, int 
 	return (Vector2){ (int)x, (int)y };
 }
 
-
+// Function for checkin if the mouse position is correct
 bool MouseRightPos( int mousePosX, int mousePosY, int minX, int minY, int sizeX, int sizeY)
 {
+    //If the mouse postion is within a box of space retrun true
     if (minX < mousePosX && (minX+sizeX) > mousePosX && minY < mousePosY && (minY+sizeY) > mousePosY)
 	{
 	    return true;
@@ -590,4 +644,43 @@ void InitGrid(Symbol grid[][8], int gridWidth, int gridHeight, int symbolCount)
 	}
 }
 
+// Function that keeps track of animations 
+intTrio BackgroundAnimation(int animationTimer, int houseAnimationCycle, int skyAnimationCycle)
+{
+    // Keeps track of how many frames has passed
+    animationTimer++;
+    // If the current frame rotaion is under 48 the cycle number should rise
+    if(animationTimer <= 48)
+    {
+	// Every 12 frames the background should change
+	if ((animationTimer % 12) == 0)
+        {
+	    skyAnimationCycle++;
+        }
+
+	// Every frame the house position should change
+ 	houseAnimationCycle++;
+	
+    }
+    //If the current frame rotaion is over 48 the cycle number should be reduced
+    else if(animationTimer <= 96)
+    {
+	// Every 12 frames the background should change
+	if ((animationTimer % 12) == 0)
+	{
+	    skyAnimationCycle--;
+	}
+	// Every frame the house position should change
+	houseAnimationCycle++;
+
+    }
+    //After 96 frames reset the rotation
+    else
+    {
+	animationTimer      = 0;
+    }
+
+    return {animationTimer, houseAnimationCycle, skyAnimationCycle};
+
+}
 
