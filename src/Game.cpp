@@ -35,6 +35,7 @@ Vector2 GetGridPosition(Vector2, Vector2, int, int, float, int, int);
 //----------------------------------------------------------------------------------
 int main(void)
 {
+
     // Initialization (Note windowTitle is unused on Android)
     //--------------------------------------------------------------------------------------
     const int screenWidth = 1280;
