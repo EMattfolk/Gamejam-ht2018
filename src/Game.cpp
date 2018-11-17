@@ -40,6 +40,8 @@ struct Streak
 Vector2 GetGridPosition(Vector2, Vector2, int, int, float, int, int);
 bool IsValidMove(Vector2, Vector2);
 std::vector<Streak> GetStreaks(Symbol[][8], int, int);
+void RemoveStreaks(Symbol[][8], std::vector<Streak>);
+void InitGrid(Symbol[][8], int, int, int);
 
 //----------------------------------------------------------------------------------
 // Main entry point
@@ -72,17 +74,36 @@ int main(void)
 
 	// Initalize the grid, element access with [x][y]
     Symbol grid[gridWidth][gridHeight] = {};
+	InitGrid(grid, gridWidth, gridHeight, symbolCount);
 
-	for (int i = 0; i < gridWidth; i++)
+	// Remove eventual streaks from initial configuration
+	std::vector<Streak> streaks = GetStreaks(grid, gridWidth, gridHeight);
+	int iters = 0;
+	while (streaks.size())
 	{
-		for (int j = 0; j < gridHeight; j++)
+		if (iters > 100)
 		{
-			grid[i][j] = {
-				{ (float) i, (float) j },
-				{ (float) i, (float) j },
-				rand() % symbolCount,
-				false};
+			InitGrid(grid, gridWidth, gridHeight, symbolCount);
+			streaks.clear();
+			streaks = GetStreaks(grid, gridWidth, gridHeight);
+			iters = 0;
 		}
+		for (auto it = streaks.begin(); it != streaks.end(); it++)
+		{
+			if ((*it).horiz)
+			{
+				grid[(int)(*it).start.x + 1][(int)(*it).start.y].type++;
+				grid[(int)(*it).start.x + 1][(int)(*it).start.y].type %= symbolCount;
+			}
+			else
+			{
+				grid[(int)(*it).start.x][(int)(*it).start.y + 1].type++;
+				grid[(int)(*it).start.x][(int)(*it).start.y + 1].type %= symbolCount;
+			}
+		}
+		streaks.clear();
+		streaks = GetStreaks(grid, gridWidth, gridHeight);
+		iters++;
 	}
 
 	// The cell that was last clicked
@@ -167,7 +188,18 @@ int main(void)
 						int temp = grid[cx][cy].type;
 						grid[cx][cy].type = grid[rx][ry].type;
 						grid[rx][ry].type = temp;
-						std::cout << GetStreaks(grid, gridWidth, gridHeight).size() << std::endl;
+
+						streaks = GetStreaks(grid, gridWidth, gridHeight);
+						if (streaks.size())
+						{
+							RemoveStreaks(grid, streaks);
+						}
+						else
+						{
+							temp = grid[cx][cy].type;
+							grid[cx][cy].type = grid[rx][ry].type;
+							grid[rx][ry].type = temp;
+						}
 					}
 				}
 				else
@@ -295,6 +327,7 @@ bool IsValidMove (Vector2 origin, Vector2 end)
 	return false;
 }
 
+// Find all streaks and return them
 std::vector<Streak> GetStreaks(Symbol grid[][8], int gridWidth, int gridHeight)
 {
 	// Put on heap if this does not work
@@ -376,3 +409,26 @@ std::vector<Streak> GetStreaks(Symbol grid[][8], int gridWidth, int gridHeight)
 
 	return streaks;
 }
+
+// Remove all streaks from grid
+void RemoveStreaks(Symbol grid[][8], std::vector<Streak> streaks)
+{
+
+}
+
+// Initialize grid
+void InitGrid(Symbol grid[][8], int gridWidth, int gridHeight, int symbolCount)
+{
+	for (int i = 0; i < gridWidth; i++)
+	{
+		for (int j = 0; j < gridHeight; j++)
+		{
+			grid[i][j] = {
+				{ (float) i, (float) j },
+				{ (float) i, (float) j },
+				rand() % symbolCount,
+				false};
+		}
+	}
+}
+
