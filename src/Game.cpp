@@ -28,6 +28,8 @@ struct Symbol
 	bool isNull;
 };
 
+Vector2 GetGridPosition(Vector2, Vector2, int, int, float, int, int);
+
 //----------------------------------------------------------------------------------
 // Main entry point
 //----------------------------------------------------------------------------------
@@ -38,9 +40,12 @@ int main(void)
     const int screenWidth = 1280;
     const int screenHeight = 720;
 	const int symbolCount = 4;
+	const int symbolOffset = 1;
 	const int gridWidth = 5;
 	const int gridHeight = 8;
 	const float gridScale = 3.0f;
+	const int cellSize = 19;
+	const int cellOffset = 1;
 	const Vector2 gridPosition = { 500, 100 };
 
     InitWindow(screenWidth, screenHeight, "Swave");
@@ -76,6 +81,13 @@ int main(void)
 	 */
 
 	Texture2D gridSprite = LoadTexture("src/gridSprite.png");
+	Texture2D symbolSprites [] = 
+	{
+		LoadTexture("src/bowtie_sprite.png"),
+		LoadTexture("src/romb_sprite.png"),
+		LoadTexture("src/square_sprite.png"),
+		LoadTexture("src/triangle_sprite.png")
+	};
 
     SetTargetFPS(60);
 
@@ -108,17 +120,18 @@ int main(void)
                 if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
                 {
                     currentScreen = GAMEPLAY;
-                }
+                } 
             } break;
             case GAMEPLAY:
             { 
                 // TODO: Update GAMEPLAY screen variables here!
 
                 // Press enter to change to ENDING screen
-                if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
+                if (IsMouseButtonPressed(0))
                 {
-                    currentScreen = ENDING;
-                } 
+					Vector2 clickedCell = GetGridPosition(GetMousePosition(), gridPosition, cellOffset, cellSize, gridScale, gridWidth, gridHeight);
+					std::cout << clickedCell.x << " " << clickedCell.y << std::endl;
+                }
             } break;
             case ENDING: 
             {
@@ -160,7 +173,22 @@ int main(void)
                 case GAMEPLAY:
                 { 
 					// Draw the game
+
+					// Draw the grid
 					DrawTextureEx(gridSprite, gridPosition, 0, gridScale, (Color){255,255,255,255});
+					// Draw the symbols
+					for (int i = 0; i < gridWidth; i++)
+					{
+						for (int j = 0; j < gridHeight; j++)
+						{
+							float drawX, drawY;
+							drawX = gridPosition.x + (cellOffset + symbolOffset) * gridScale + cellSize * gridScale * i;
+							drawY = gridPosition.y + (cellOffset + symbolOffset) * gridScale + cellSize * gridScale * j;
+							Vector2 symbolPos = (Vector2) { (int)drawX, (int)drawY };
+							DrawTextureEx(symbolSprites[grid[i][j].type], symbolPos, 0, gridScale, (Color){255,255,255,255});
+						}
+					}
+
                 } break;
                 case ENDING: 
                 {
@@ -190,4 +218,18 @@ int main(void)
     //--------------------------------------------------------------------------------
 
     return 0;
+}
+
+Vector2 GetGridPosition(Vector2 mousePos, Vector2 gridPos, int cellOffset, int cellSize, float scale, int maxX, int maxY)
+{
+	float x, y;
+	x = mousePos.x - gridPos.x - scale * cellOffset;
+	x /= scale * cellSize;
+	y = mousePos.y - gridPos.y - scale * cellOffset;
+	y /= scale * cellSize;
+	if (x < 0 || y < 0 || x >= maxX || y >= maxY)
+	{
+		return (Vector2) {-1, -1};
+	}
+	return (Vector2){ (int)x, (int)y };
 }
