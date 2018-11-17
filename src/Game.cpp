@@ -215,21 +215,21 @@ int main(void)
 						rx = (int)releasedCell.x; 
 						ry = (int)releasedCell.y; 
 
-						int temp = grid[cx][cy].type;
-						grid[cx][cy].type = grid[rx][ry].type;
-						grid[rx][ry].type = temp;
+						Symbol temp = grid[cx][cy];
+						grid[cx][cy] = grid[rx][ry];
+						grid[rx][ry] = temp;
 
 						streaks = GetStreaks(grid, gridWidth, gridHeight);
 						if (streaks.size())
 						{
-							MarkStreaks(grid, streaks);
-							RespawnSymbols(grid, gridWidth, gridHeight, symbolCount);
+							grid[cx][cy].target_pos = grid[rx][ry].position;
+							grid[rx][ry].target_pos = grid[cx][cy].position;
 						}
 						else
 						{
-							temp = grid[cx][cy].type;
-							grid[cx][cy].type = grid[rx][ry].type;
-							grid[rx][ry].type = temp;
+							temp = grid[cx][cy];
+							grid[cx][cy] = grid[rx][ry];
+							grid[rx][ry] = temp;
 						}
 					}
 				}
@@ -245,7 +245,15 @@ int main(void)
 					{
 						if (grid[i][j].position.y != grid[i][j].target_pos.y)
 						{
-							grid[i][j].position.y += symbolSpeed;
+							float delta = grid[i][j].target_pos.y - grid[i][j].position.y;
+							delta = abs(delta) / delta;
+							grid[i][j].position.y += symbolSpeed * delta;
+						}
+						if (grid[i][j].position.x != grid[i][j].target_pos.x)
+						{
+							float delta = grid[i][j].target_pos.x - grid[i][j].position.x;
+							delta = abs(delta) / delta;
+							grid[i][j].position.x += symbolSpeed * delta;
 						}
 					}
 				}
@@ -312,9 +320,14 @@ int main(void)
                 case GAMEPLAY:
                 { 
 					// Draw the game
-		                        DrawTextureEx(backgroundSprite, backgroundPosition, 0, gridScale, (Color){255,255,255,255});
-					// Draw the grid
+
+					// Draw background
+		            DrawTextureEx(backgroundSprite, backgroundPosition, 0, gridScale, (Color){255,255,255,255});
+
+					// Draw a black rectangle for increased visibility
 					DrawRectangle( (screenWidth/2)-38*gameScale , (screenHeight/2) - 79* gameScale, 96*gameScale, 153*gameScale, BLACK);
+
+					// Draw grid
 					DrawTextureEx(gridSprite, gridPosition, 0, gridScale, (Color){255,255,255,255});
 					// Draw the symbols
 					for (int i = 0; i < gridWidth; i++)
@@ -498,13 +511,13 @@ void MarkStreaks(Symbol grid[][8], std::vector<Streak> streaks)
 		{
 			for (int i = 0; i < (*it).length; i++)
 			{
-				if (grid[x + i][y].position.y != grid[x + i][y].target_pos.y)
+				if (grid[x + i][y].position.x != grid[x + i][y].target_pos.x || grid[x + i][y].position.y != grid[x + i][y].target_pos.y)
 				{
 					flag = true;
 					break;
 				}
 			}
-			// Break if the whole streak has not fallen down
+			// Break if the whole streak has not reached its position
 			if (flag) break;
 			for (int i = 0; i < (*it).length; i++)
 			{
@@ -513,6 +526,16 @@ void MarkStreaks(Symbol grid[][8], std::vector<Streak> streaks)
 		}
 		else
 		{
+			for (int i = 0; i < (*it).length; i++)
+			{
+				if (grid[x][y + i].position.x != grid[x][y + i].target_pos.x || grid[x][y + i].position.y != grid[x][y + i].target_pos.y)
+				{
+					flag = true;
+					break;
+				}
+			}
+			// Break if the whole streak has not reached its position
+			if (flag) break;
 			for (int i = 0; i < (*it).length; i++)
 			{
 				grid[x][y + i].marked = true;
@@ -534,7 +557,7 @@ void RespawnSymbols(Symbol grid[][8], int gridWidth, int gridHeight, int symbolC
 				count++;
 				Symbol temp = grid[i][j];
 				temp.type = rand() % symbolCount;
-				temp.position = (Vector2){ i, -count };
+				temp.position = (Vector2){ i, grid[i][0].position.y - 1 };
 				temp.target_pos = (Vector2){ i, 0 };
 				temp.marked = false;
 
