@@ -14,6 +14,7 @@
 #include "stdlib.h"
 #include "time.h"
 #include <iostream>
+#include <vector>
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
@@ -28,8 +29,17 @@ struct Symbol
 	bool isNull;
 };
 
+struct Streak
+{
+	Vector2 start;
+	int length;
+	int type;
+	bool horiz;
+};
+
 Vector2 GetGridPosition(Vector2, Vector2, int, int, float, int, int);
 bool IsValidMove(Vector2, Vector2);
+std::vector<Streak> GetStreaks(Symbol[][8], int, int);
 
 //----------------------------------------------------------------------------------
 // Main entry point
@@ -157,6 +167,7 @@ int main(void)
 						int temp = grid[cx][cy].type;
 						grid[cx][cy].type = grid[rx][ry].type;
 						grid[rx][ry].type = temp;
+						std::cout << GetStreaks(grid, gridWidth, gridHeight).size() << std::endl;
 					}
 				}
 				else
@@ -282,4 +293,86 @@ bool IsValidMove (Vector2 origin, Vector2 end)
 		return true;
 	}
 	return false;
+}
+
+std::vector<Streak> GetStreaks(Symbol grid[][8], int gridWidth, int gridHeight)
+{
+	// Put on heap if this does not work
+	std::vector<Streak> streaks = {};
+
+	for (int i = 0; i < gridWidth; i++)
+	{
+		int count = 0, type = -1;
+		Vector2 start = (Vector2){-1, -1};
+		for (int j = 0; j < gridHeight; j++)
+		{
+			if (grid[i][j].type == type)
+			{
+				count++;
+			}
+			else
+			{
+				if (count > 2)
+				{
+					streaks.push_back({
+							start,
+							count,
+							type,
+							false
+							});
+				}
+				type = grid[i][j].type;
+				count = 1;
+				start = (Vector2){i, j};
+			}
+		}
+		if (count > 2)
+		{
+			streaks.push_back({
+					start,
+					count,
+					type,
+					false
+					});
+		}
+	}
+	
+	for (int j = 0; j < gridHeight; j++)
+	{
+		int count = 0, type = -1;
+		Vector2 start = (Vector2){-1, -1};
+		for (int i = 0; i < gridWidth; i++)
+		{
+			if (grid[i][j].type == type)
+			{
+				count++;
+			}
+			else
+			{
+				if (count > 2)
+				{
+					streaks.push_back({
+							start,
+							count,
+							type,
+							true
+							});
+				}
+				type = grid[i][j].type;
+				count = 1;
+				start = (Vector2){i, j};
+			}
+		}
+		if (count > 2)
+		{
+			streaks.push_back({
+					start,
+					count,
+					type,
+					false
+					});
+		}
+	}
+
+	return streaks;
 }
