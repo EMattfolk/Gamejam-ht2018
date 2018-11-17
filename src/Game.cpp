@@ -60,6 +60,7 @@ void InitGrid(Symbol[][8], int, int, int);
 intTrio BackgroundAnimation(int,int,int);
 void RespawnSymbols(Symbol[][8], int, int, int);
 void ModifyScore(float*, float*, float, int);
+float GetScoreRate(float);
 
 //----------------------------------------------------------------------------------
 // Main entry point
@@ -135,6 +136,8 @@ int main(void)
 	float currentScore = 200, score = 0;
 	// Frame counter
 	int framesCounter = 0;
+	// Secs per frame (for time calculations)
+	float secsPerFrame = 1.0f / 60;
 
     /*
 	 * Initialize textures
@@ -156,6 +159,10 @@ int main(void)
 	Texture2D backgroundHouseSprite = LoadTexture("src/sprites/buildings.png");
 
 	Texture2D barSprite = LoadTexture("src/sprites/bar_sprite.png");
+
+	Texture2D upArrowSprite = LoadTexture("src/sprites/arrow_up_sprite.png");
+
+	Texture2D downArrowSprite = LoadTexture("src/sprites/arrow_down_sprite.png");
 
 	Texture2D symbolSprites [] = 
 	{
@@ -197,14 +204,17 @@ int main(void)
       
 		if (IsKeyPressed(KEY_ENTER) || (IsGestureDetected(GESTURE_TAP) &&  MouseRightPos( GetMouseX(),  GetMouseY(), (screenWidth/2) - 50*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale)))
                 {
-
                     currentScreen = GAMEPLAY;
+					framesCounter = 0;
                 } 
 
             } break;
             case GAMEPLAY:
             { 
                 // Update the game
+
+				// Update to the frame we are on
+                framesCounter++;
 				
 				// Handle mouseinput
                 if (IsMouseButtonPressed(0))
@@ -382,6 +392,19 @@ int main(void)
 			// Draw rectangle in bar depending on score
 			int barHeight = (int)(151 * gameScale * currentScore / 1000);
 			DrawRectangleGradientV(barPosition.x + cellOffset * gameScale, barPosition.y + 152 * gameScale - barHeight, 30, barHeight, ORANGE, RED);
+
+			// Draw the arrow(s) in the bar
+			Vector2 arrowPos;
+			if (GetScoreRate(framesCounter * secsPerFrame) < 0)
+			{
+				arrowPos = (Vector2){ barPosition.x + 2 * gameScale, barPosition.y + 152 * gameScale - barHeight - 12 * gameScale};
+				DrawTextureEx(upArrowSprite, arrowPos, 0, gridScale, (Color){255,255,255,255});
+			}
+			else
+			{
+				arrowPos = (Vector2){ barPosition.x + 2 * gameScale, barPosition.y + 152 * gameScale - barHeight + 2 * gameScale};
+				DrawTextureEx(downArrowSprite, arrowPos, 0, gridScale, (Color){255,255,255,255});
+			}
 
 		    // DRAW THE GRID
 		    // DrawRectangle( (screenWidth/2)-38*gameScale , (screenHeight/2) - 79* gameScale, 96*gameScale, 153*gameScale, BLACK); Dis dos black box behind grid
@@ -734,4 +757,10 @@ void ModifyScore(float *score, float *currentScore, float gameTime, int combo)
 	{
 		*currentScore = 1000.0f;
 	}
+}
+
+// Returns the rate at which the current score is decreasing
+float GetScoreRate (float time)
+{
+	return time - 10;
 }
