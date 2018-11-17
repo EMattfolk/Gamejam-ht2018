@@ -177,7 +177,7 @@ int main(void)
             {
                 // TODO: Update TITLE screen variables here!
 
-                // Press enter to change to GAMEPLAY screen 
+                // Press enter or the button to change the screen 
       
 		if (IsKeyPressed(KEY_ENTER) || (IsGestureDetected(GESTURE_TAP) &&  MouseRightPos( GetMouseX(),  GetMouseY(), (screenWidth/2) - 50*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale)))
                 {
@@ -319,7 +319,7 @@ int main(void)
 		    aniTrio = BackgroundAnimation(aniTrio.timer, aniTrio.houseCycle, aniTrio.skyCycle );
 		    
 		    // Applies the houseCycle modifer to the house textture pos
-		    float houseY =  ((22 * gameScale)*sinf(aniTrio.houseCycle/30.55775f))+22*gameScale;
+		    float houseY =  ((11 * gameScale)*sinf(aniTrio.houseCycle/30.55775f))+11*gameScale;
 		    Vector2 housePosition = (Vector2) {0, houseY}; 
 
 		    // Draws the Background and Houses
@@ -327,7 +327,7 @@ int main(void)
 		    DrawTextureEx(backgroundHouseSprite, housePosition, 0, gridScale, (Color){255,255,255,255});
 
 		    // DRAW THE GRID
-		    DrawRectangle( (screenWidth/2)-38*gameScale , (screenHeight/2) - 79* gameScale, 96*gameScale, 153*gameScale, BLACK);
+		    // DrawRectangle( (screenWidth/2)-38*gameScale , (screenHeight/2) - 79* gameScale, 96*gameScale, 153*gameScale, BLACK); Dis dos black box behind grid
 		    DrawTextureEx(gridSprite, gridPosition, 0, gridScale, (Color){255,255,255,255});
 		    // DRAW THE SYMBOLS
 		    for (int i = 0; i < gridWidth; i++)
@@ -402,9 +402,10 @@ Vector2 GetGridPosition (Vector2 mousePos, Vector2 gridPos, int cellOffset, int 
 	return (Vector2){ (int)x, (int)y };
 }
 
-
+// Function for checkin if the mouse position is correct
 bool MouseRightPos( int mousePosX, int mousePosY, int minX, int minY, int sizeX, int sizeY)
 {
+    //If the mouse postion is within a box of space retrun true
     if (minX < mousePosX && (minX+sizeX) > mousePosX && minY < mousePosY && (minY+sizeY) > mousePosY)
 	{
 	    return true;
@@ -535,34 +536,40 @@ void InitGrid(Symbol grid[][8], int gridWidth, int gridHeight, int symbolCount)
 	}
 }
 
+// Function that keeps track of animations 
 intTrio BackgroundAnimation(int animationTimer, int houseAnimationCycle, int skyAnimationCycle)
 {
+    // Keeps track of how many frames has passed
     animationTimer++;
+    // If the current frame rotaion is under 48 the cycle number should rise
     if(animationTimer <= 48)
     {
+	// Every 12 frames the background should change
 	if ((animationTimer % 12) == 0)
         {
 	    skyAnimationCycle++;
         }
 
-	houseAnimationCycle++;
+	// Every frame the house position should change
+ 	houseAnimationCycle++;
 	
     }
+    //If the current frame rotaion is over 48 the cycle number should be reduced
     else if(animationTimer <= 96)
     {
+	// Every 12 frames the background should change
 	if ((animationTimer % 12) == 0)
 	{
 	    skyAnimationCycle--;
 	}
-
+	// Every frame the house position should change
 	houseAnimationCycle++;
 
     }
+    //After 96 frames reset the rotation
     else
     {
 	animationTimer      = 0;
-	skyAnimationCycle   = 0;
-	// houseAnimationCycle = 0;
     }
 
     return {animationTimer, houseAnimationCycle, skyAnimationCycle};
