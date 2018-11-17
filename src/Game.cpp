@@ -9,6 +9,13 @@
  *                      *
  */                    
 
+/*
+ *
+ * Polishing:
+ *	Make Symbols get the appropriate placement when respawning
+ *
+ */
+
 #include "raylib.h"
 #include "raymath.h"
 #include "stdlib.h"
@@ -25,8 +32,9 @@ struct Symbol
 {
 	Vector2 position;
 	Vector2 target_pos;
-        int type;
+    int type;
 	bool isNull;
+	bool marked;
 };
 
 struct Streak
@@ -38,11 +46,12 @@ struct Streak
 };
 
 Vector2 GetGridPosition(Vector2, Vector2, int, int, float, int, int);
-bool MouseRightPos( int, int, int, int, int, int);
+bool MouseRightPos(int, int, int, int, int, int);
 bool IsValidMove(Vector2, Vector2);
 std::vector<Streak> GetStreaks(Symbol[][8], int, int);
-void RemoveStreaks(Symbol[][8], std::vector<Streak>);
+void MarkStreaks(Symbol[][8], std::vector<Streak>);
 void InitGrid(Symbol[][8], int, int, int);
+void RespawnSymbols(Symbol[][8], int, int, int);
 
 
 //----------------------------------------------------------------------------------
@@ -58,6 +67,7 @@ int main(void)
     const int screenHeight = 214 *gameScale;
     const int symbolCount = 4;
     const int symbolOffset = 1;
+	const float symbolSpeed = 1.0f/8;
     const int gridWidth = 5;
     const int gridHeight = 8;
     const float gridScale = 3.0f;
@@ -75,9 +85,6 @@ int main(void)
     /* 
 	 * Initialize variables
 	 */
-
-
-
 
 	// Initalize the grid, element access with [x][y]
     Symbol grid[gridWidth][gridHeight] = {};
@@ -215,7 +222,8 @@ int main(void)
 						streaks = GetStreaks(grid, gridWidth, gridHeight);
 						if (streaks.size())
 						{
-							RemoveStreaks(grid, streaks);
+							MarkStreaks(grid, streaks);
+							RespawnSymbols(grid, gridWidth, gridHeight, symbolCount);
 						}
 						else
 						{
@@ -229,6 +237,26 @@ int main(void)
 				{
 					clickedCell = (Vector2){-1, -1};
 				}
+
+				// Update symbols in grid
+				for (int i = 0; i < gridWidth; i++)
+				{
+					for (int j = 0; j < gridHeight; j++)
+					{
+						if (grid[i][j].position.y != grid[i][j].target_pos.y)
+						{
+							grid[i][j].position.y += symbolSpeed;
+						}
+					}
+				}
+
+				streaks = GetStreaks(grid, gridWidth, gridHeight);
+				if (streaks.size())
+				{
+					MarkStreaks(grid, streaks);
+					RespawnSymbols(grid, gridWidth, gridHeight, symbolCount);
+				}
+
             } break;
             case ENDING: 
             {
@@ -294,8 +322,8 @@ int main(void)
 						for (int j = 0; j < gridHeight; j++)
 						{
 							float drawX, drawY;
-							drawX = gridPosition.x + (cellOffset + symbolOffset) * gridScale + cellSize * gridScale * i;
-							drawY = gridPosition.y + (cellOffset + symbolOffset) * gridScale + cellSize * gridScale * j;
+							drawX = gridPosition.x + (cellOffset + symbolOffset) * gridScale + cellSize * gridScale * grid[i][j].position.x;
+							drawY = gridPosition.y + (cellOffset + symbolOffset) * gridScale + cellSize * gridScale * grid[i][j].position.y;
 							Vector2 symbolPos = (Vector2) { (int)drawX, (int)drawY };
 							DrawTextureEx(symbolSprites[grid[i][j].type], symbolPos, 0, gridScale, (Color){255,255,255,255});
 						}
@@ -451,7 +479,7 @@ std::vector<Streak> GetStreaks(Symbol grid[][8], int gridWidth, int gridHeight)
 					start,
 					count,
 					type,
-					false
+					true
 					});
 		}
 	}
@@ -459,10 +487,56 @@ std::vector<Streak> GetStreaks(Symbol grid[][8], int gridWidth, int gridHeight)
 	return streaks;
 }
 
-// Remove all streaks from grid
-void RemoveStreaks(Symbol grid[][8], std::vector<Streak> streaks)
+// Mark all streaks for deletion
+void MarkStreaks(Symbol grid[][8], std::vector<Streak> streaks)
 {
+	for (auto it = streaks.begin(); it != streaks.end(); it++)
+	{
+		int x = (int)(*it).start.x, y = (int)(*it).start.y;
+		if ((*it).horiz && grid[x][y].position.y == grid[x][y].target_pos.y)
+		{
+			for (int i = 0; i < (*it).length; i++)
+			{
+				grid[x + i][y].marked = true;
+			}
+		}
+		else
+		{
+			for (int i = 0; i < (*it).length; i++)
+			{
+				grid[x][y + i].marked = true;
+			}
+		}
+	}
+}
 
+// Respawn all destroyed symbols
+void RespawnSymbols(Symbol grid[][8], int gridWidth, int gridHeight, int symbolCount)
+{
+	for (int i = 0; i < gridWidth; i++)
+	{
+		int count = 0;
+		for (int j = gridHeight - 1; j >= 0; j--)
+		{
+			if (grid[i][j].marked && grid[i][j].position.y == grid[i][j].target_pos.y - count)
+			{
+				count++;
+				Symbol temp = grid[i][j];
+				temp.type = rand() % symbolCount;
+				temp.position = (Vector2){ i, -count };
+				temp.target_pos = (Vector2){ i, 0 };
+				temp.marked = false;
+
+				for (int k = j - 1; k >= 0; k--)
+				{
+					grid[i][k].target_pos.y++;
+					grid[i][k+1] = grid[i][k];
+				}
+				grid[i][0] = temp;
+				j++;
+			}
+		}
+	}
 }
 
 // Initialize grid
@@ -476,6 +550,7 @@ void InitGrid(Symbol grid[][8], int gridWidth, int gridHeight, int symbolCount)
 				{ (float) i, (float) j },
 				{ (float) i, (float) j },
 				rand() % symbolCount,
+				false,
 				false};
 		}
 	}
