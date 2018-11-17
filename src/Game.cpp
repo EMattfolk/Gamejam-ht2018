@@ -1,6 +1,6 @@
 /*                      *
  *                      *
- *        Swave         *
+ *        S-wave        *
  *                      *
  *       Creators       *
  *     Erik Mattfolk    *
@@ -12,8 +12,7 @@
 /*
  *
  * Polishing:
- *	Make Symbols get the appropriate placement when respawning
- *
+ *  Nothing ATM
  */
 
 #include "raylib.h"
@@ -44,21 +43,23 @@ struct Streak
 	int type;
 	bool horiz;
 };
+
 struct intTrio
 {
     int timer;
     int houseCycle;
     int skyCycle;
 }; 
+
 Vector2 GetGridPosition(Vector2, Vector2, int, int, float, int, int);
 bool MouseRightPos(int, int, int, int, int, int);
 bool IsValidMove(Vector2, Vector2);
 std::vector<Streak> GetStreaks(Symbol[][8], int, int);
-void MarkStreaks(Symbol[][8], std::vector<Streak>);
+bool MarkStreak(Symbol[][8], Streak);
 void InitGrid(Symbol[][8], int, int, int);
 intTrio BackgroundAnimation(int,int,int);
 void RespawnSymbols(Symbol[][8], int, int, int);
-
+void ModifyScore(float*, float*, float, int);
 
 //----------------------------------------------------------------------------------
 // Main entry point
@@ -80,6 +81,7 @@ int main(void)
     const int cellSize = 19;
     const int cellOffset = 1;
     const Vector2 gridPosition = { (screenWidth/2)-38*gameScale , (screenHeight/2) - 79* gameScale};
+	const Vector2 barPosition = { gridPosition.x - 15 * gameScale, gridPosition.y };
     const Vector2 backgroundPosition {0,0};
     InitWindow(screenWidth, screenHeight, "S-Wave");
 
@@ -129,9 +131,12 @@ int main(void)
 	// -1, -1 means there was no cell
 	Vector2 clickedCell = (Vector2){-1, -1};
 
-        int framesCounter = 0;
+	// Inialize the different scores
+	float currentScore = 200, score = 0;
+	// Frame counter
+	int framesCounter = 0;
 
-         /*
+    /*
 	 * Initialize textures
 	 */
 
@@ -150,6 +155,7 @@ int main(void)
 
 	Texture2D backgroundHouseSprite = LoadTexture("src/sprites/buildings.png");
 
+	Texture2D barSprite = LoadTexture("src/sprites/bar_sprite.png");
 
 	Texture2D symbolSprites [] = 
 	{
@@ -204,7 +210,6 @@ int main(void)
                 if (IsMouseButtonPressed(0))
                 {
 					clickedCell = GetGridPosition(GetMousePosition(), gridPosition, cellOffset, cellSize, gridScale, gridWidth, gridHeight);
-					std::cout << "Press:   " << clickedCell.x << ", " << clickedCell.y << std::endl;
                 }
 				else if (IsMouseButtonDown(0))
 				{
@@ -213,8 +218,7 @@ int main(void)
 				else if (IsMouseButtonReleased(0))
 				{
 					Vector2 releasedCell = GetGridPosition(GetMousePosition(), gridPosition, cellOffset, cellSize, gridScale, gridWidth, gridHeight);
-					std::cout << "Release: " << releasedCell.x << ", " << releasedCell.y << std::endl;
-					std::cout << "Move validity: " << IsValidMove(clickedCell, releasedCell) << std::endl;
+
 					if (IsValidMove(clickedCell, releasedCell))
 					{
 						int cx, cy, rx, ry;
@@ -269,7 +273,13 @@ int main(void)
 				streaks = GetStreaks(grid, gridWidth, gridHeight);
 				if (streaks.size())
 				{
-					MarkStreaks(grid, streaks);
+					for (auto it = streaks.begin(); it != streaks.end(); it++)
+					{
+						if (MarkStreak(grid, *it))
+						{
+							ModifyScore(&score, &currentScore, 0, (*it).length);
+						}
+					}
 					RespawnSymbols(grid, gridWidth, gridHeight, symbolCount);
 				}
 
@@ -365,6 +375,13 @@ int main(void)
 		    // Draws the Background and Houses
 		    DrawTextureEx(backgroundSprites[aniTrio.skyCycle], backgroundPosition, 0, gridScale, (Color){255,255,255,255});
 		    DrawTextureEx(backgroundHouseSprite, housePosition, 0, gridScale, (Color){255,255,255,255});
+
+			// Draw bar
+			DrawTextureEx(barSprite, barPosition, 0, gridScale, (Color){255,255,255,255});
+			
+			// Draw rectangle in bar depending on score
+			int barHeight = (int)(151 * gameScale * currentScore / 1000);
+			DrawRectangleGradientV(barPosition.x + cellOffset * gameScale, barPosition.y + 152 * gameScale - barHeight, 30, barHeight, ORANGE, RED);
 
 		    // DRAW THE GRID
 		    // DrawRectangle( (screenWidth/2)-38*gameScale , (screenHeight/2) - 79* gameScale, 96*gameScale, 153*gameScale, BLACK); Dis dos black box behind grid
@@ -554,48 +571,42 @@ std::vector<Streak> GetStreaks(Symbol grid[][8], int gridWidth, int gridHeight)
 	return streaks;
 }
 
-// Mark all streaks for deletion
-void MarkStreaks(Symbol grid[][8], std::vector<Streak> streaks)
+// Mark streak for deletion returns if it could be deleted
+bool MarkStreak(Symbol grid[][8], Streak streak)
 {
-	for (auto it = streaks.begin(); it != streaks.end(); it++)
+	int x = (int)streak.start.x, y = (int)streak.start.y;
+	if (streak.horiz)
 	{
-		int x = (int)(*it).start.x, y = (int)(*it).start.y;
-		bool flag = false;
-		if ((*it).horiz)
+		for (int i = 0; i < streak.length; i++)
 		{
-			for (int i = 0; i < (*it).length; i++)
+			if (grid[x + i][y].position.x != grid[x + i][y].target_pos.x || grid[x + i][y].position.y != grid[x + i][y].target_pos.y)
 			{
-				if (grid[x + i][y].position.x != grid[x + i][y].target_pos.x || grid[x + i][y].position.y != grid[x + i][y].target_pos.y)
-				{
-					flag = true;
-					break;
-				}
-			}
-			// Break if the whole streak has not reached its position
-			if (flag) break;
-			for (int i = 0; i < (*it).length; i++)
-			{
-				grid[x + i][y].marked = true;
+				return false;
 			}
 		}
-		else
+
+		for (int i = 0; i < streak.length; i++)
 		{
-			for (int i = 0; i < (*it).length; i++)
-			{
-				if (grid[x][y + i].position.x != grid[x][y + i].target_pos.x || grid[x][y + i].position.y != grid[x][y + i].target_pos.y)
-				{
-					flag = true;
-					break;
-				}
-			}
-			// Break if the whole streak has not reached its position
-			if (flag) break;
-			for (int i = 0; i < (*it).length; i++)
-			{
-				grid[x][y + i].marked = true;
-			}
+			grid[x + i][y].marked = true;
 		}
 	}
+	else
+	{
+		for (int i = 0; i < streak.length; i++)
+		{
+			if (grid[x][y + i].position.x != grid[x][y + i].target_pos.x || grid[x][y + i].position.y != grid[x][y + i].target_pos.y)
+			{
+				return false;
+			}
+		}
+
+		for (int i = 0; i < streak.length; i++)
+		{
+			grid[x][y + i].marked = true;
+		}
+	}
+
+	return true;
 }
 
 // Respawn all destroyed symbols
@@ -684,3 +695,43 @@ intTrio BackgroundAnimation(int animationTimer, int houseAnimationCycle, int sky
 
 }
 
+// Update the score
+void ModifyScore(float *score, float *currentScore, float gameTime, int combo)
+{
+	// Get multiplier for score
+	float multiplier = 1.0f;
+	if (*currentScore > 500)
+	{
+		multiplier += 0.5f;
+	}
+	if (*currentScore > 900)
+	{
+		multiplier += 0.5f;
+	}
+	// Assign points
+	if (combo == 3)
+	{
+		*score += 10 * multiplier;
+		*currentScore += 10;
+	}
+	else if (combo == 4)
+	{
+		*score += 20 * multiplier;
+		*currentScore += 20;
+	}
+	else if (combo == 5)
+	{
+		*score += 50 * multiplier;
+		*currentScore += 50;
+	}
+	else if (combo > 5)
+	{
+		*score += 200 * multiplier;
+		*currentScore += 200;
+	}
+	// Clamp current score
+	if (*currentScore > 1000)
+	{
+		*currentScore = 1000.0f;
+	}
+}
