@@ -232,6 +232,7 @@ int main(void)
                 {
 		    targetScreen = GAMEPLAY;
                     currentScreen = SPLASH;
+
                 } 
 
             } break;
