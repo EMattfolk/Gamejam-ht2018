@@ -67,7 +67,7 @@ int main(void)
     const int screenHeight = 214 *gameScale;
     const int symbolCount = 4;
     const int symbolOffset = 1;
-	const float symbolSpeed = 1.0f/8;
+	const float symbolSpeed = 1.0f/16;
     const int gridWidth = 5;
     const int gridHeight = 8;
     const float gridScale = 3.0f;
@@ -493,8 +493,19 @@ void MarkStreaks(Symbol grid[][8], std::vector<Streak> streaks)
 	for (auto it = streaks.begin(); it != streaks.end(); it++)
 	{
 		int x = (int)(*it).start.x, y = (int)(*it).start.y;
-		if ((*it).horiz && grid[x][y].position.y == grid[x][y].target_pos.y)
+		bool flag = false;
+		if ((*it).horiz)
 		{
+			for (int i = 0; i < (*it).length; i++)
+			{
+				if (grid[x + i][y].position.y != grid[x + i][y].target_pos.y)
+				{
+					flag = true;
+					break;
+				}
+			}
+			// Break if the whole streak has not fallen down
+			if (flag) break;
 			for (int i = 0; i < (*it).length; i++)
 			{
 				grid[x + i][y].marked = true;
