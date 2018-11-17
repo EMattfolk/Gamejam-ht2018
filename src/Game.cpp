@@ -25,7 +25,7 @@ struct Symbol
 {
 	Vector2 position;
 	Vector2 target_pos;
-	int type;
+        int type;
 	bool isNull;
 };
 
@@ -38,30 +38,34 @@ struct Streak
 };
 
 Vector2 GetGridPosition(Vector2, Vector2, int, int, float, int, int);
+bool MouseRightPos( int, int, int, int, int, int);
 bool IsValidMove(Vector2, Vector2);
 std::vector<Streak> GetStreaks(Symbol[][8], int, int);
 void RemoveStreaks(Symbol[][8], std::vector<Streak>);
 void InitGrid(Symbol[][8], int, int, int);
+
 
 //----------------------------------------------------------------------------------
 // Main entry point
 //----------------------------------------------------------------------------------
 int main(void)
 {
+
     // Initialization (Note windowTitle is unused on Android)
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 1280;
-    const int screenHeight = 720;
-	const int symbolCount = 4;
-	const int symbolOffset = 1;
-	const int gridWidth = 5;
-	const int gridHeight = 8;
-	const float gridScale = 3.0f;
-	const int cellSize = 19;
-	const int cellOffset = 1;
-	const Vector2 gridPosition = { 500, 100 };
-
-    InitWindow(screenWidth, screenHeight, "Swave");
+    const int gameScale = 3;
+    const int screenWidth = 214 *gameScale;
+    const int screenHeight = 214 *gameScale;
+    const int symbolCount = 4;
+    const int symbolOffset = 1;
+    const int gridWidth = 5;
+    const int gridHeight = 8;
+    const float gridScale = 3.0f;
+    const int cellSize = 19;
+    const int cellOffset = 1;
+    const Vector2 gridPosition = { (screenWidth/2)-38*gameScale , (screenHeight/2) - 79* gameScale};
+    const Vector2 backgroundPosition {0,0};
+    InitWindow(screenWidth, screenHeight, "S-Wave");
 
 	// Initalize rand
 	srand(time(NULL));
@@ -71,6 +75,9 @@ int main(void)
     /* 
 	 * Initialize variables
 	 */
+
+
+
 
 	// Initalize the grid, element access with [x][y]
     Symbol grid[gridWidth][gridHeight] = {};
@@ -116,14 +123,27 @@ int main(void)
 	 * Initialize textures
 	 */
 
-	Texture2D gridSprite = LoadTexture("src/gridSprite.png");
+	Texture2D gridSprite = LoadTexture("src/sprites/gridSprite.png");
+
+	Texture2D backgroundSprite =  LoadTexture("src/sprites/temp_background.png");
+
+	// Texture2D backgroundSprite [] =
+	// {
+	//     LoadTexture("src/sprites/background1.png");
+	//     LoadTexture("src/sprites/background2.png");
+	//     LoadTexture("src/sprites/background3.png");
+	//     LoadTexture("src/sprites/background4.png");
+	//     LoadTexture("src/sprites/background5.png");
+	// };
+
 	Texture2D symbolSprites [] = 
 	{
-		LoadTexture("src/bowtie_sprite.png"),
-		LoadTexture("src/romb_sprite.png"),
-		LoadTexture("src/square_sprite.png"),
-		LoadTexture("src/triangle_sprite.png")
+		LoadTexture("src/sprites/bowtie_sprite.png"),
+		LoadTexture("src/sprites/romb_sprite.png"),
+		LoadTexture("src/sprites/square_sprite.png"),
+		LoadTexture("src/sprites/triangle_sprite.png")
 	};
+
 
     SetTargetFPS(60);
 
@@ -152,11 +172,14 @@ int main(void)
             {
                 // TODO: Update TITLE screen variables here!
 
-                // Press enter to change to GAMEPLAY screen
-                if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
+                // Press enter to change to GAMEPLAY screen 
+      
+		if (IsKeyPressed(KEY_ENTER) || (IsGestureDetected(GESTURE_TAP) &&  MouseRightPos( GetMouseX(),  GetMouseY(), (screenWidth/2) - 50*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale)))
                 {
+
                     currentScreen = GAMEPLAY;
                 } 
+
             } break;
             case GAMEPLAY:
             { 
@@ -232,23 +255,38 @@ int main(void)
                 case LOGO: 
                 {
                     // TODO: Draw LOGO screen here!
-                    DrawText("LOGO SCREEN", 20, 20, 40, LIGHTGRAY);
-                    DrawText("WAIT for 2 SECONDS...", 290, 220, 20, GRAY);
+		    DrawTextureEx(backgroundSprite, backgroundPosition, 0, gridScale, (Color){255,255,255,255});
+		    DrawRectangle(0, 100, 214*gameScale, 80, BLACK);
+		    DrawText("LOGO SCREEN", 0, 110, 40, WHITE);
+                    DrawText("WAIT for 2 SECONDS...", 0, 150, 20, GRAY);
                     
                 } break;
                 case TITLE: 
                 {
                     // TODO: Draw TITLE screen here!
-                    DrawRectangle(0, 0, screenWidth, screenHeight, GREEN);
-                    DrawText("TITLE SCREEN", 20, 20, 40, DARKGREEN);
-                    DrawText("PRESS ENTER or TAP to JUMP to GAMEPLAY SCREEN", 120, 220, 20, DARKGREEN);
+		    DrawTextureEx(backgroundSprite, backgroundPosition, 0, gridScale, (Color){255,255,255,255});
+		    DrawRectangle(0, 100, 214*gameScale, 80, BLACK);
+
+
+		    DrawRectangle( (screenWidth/2) - 49*gameScale, (screenHeight/3)* 2+1*gameScale, 41*gameScale, 21*gameScale, BLACK);
+		    DrawRectangle( (screenWidth/2) + 11*gameScale, (screenHeight/3)* 2+1*gameScale, 41*gameScale, 21*gameScale, BLACK);
+
+		    DrawRectangle( (screenWidth/2) - 50*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale, DARKBLUE);
+		    DrawRectangle( (screenWidth/2) + 10*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale, DARKBLUE);
+		    
+
+		    DrawText("RUN", (screenWidth/2) - 49*gameScale, (screenHeight/3)* 2+gameScale, 58, (Color){233,0,132,255});
+                    DrawText("SCORE", (screenWidth/2) + 11*gameScale, ((screenHeight/3)+7) * 2+gameScale, 34, (Color){233,0,132,255});
+		    DrawText("S-Wave Unlimited", 0, 110, 40, WHITE);
+                    DrawText("PRESS ENTER or TAP to JUMP to GAMEPLAY SCREEN", 0, 150, 20, GRAY);
                     
                 } break;
                 case GAMEPLAY:
                 { 
 					// Draw the game
-
+		                        DrawTextureEx(backgroundSprite, backgroundPosition, 0, gridScale, (Color){255,255,255,255});
 					// Draw the grid
+					DrawRectangle( (screenWidth/2)-38*gameScale , (screenHeight/2) - 79* gameScale, 96*gameScale, 153*gameScale, BLACK);
 					DrawTextureEx(gridSprite, gridPosition, 0, gridScale, (Color){255,255,255,255});
 					// Draw the symbols
 					for (int i = 0; i < gridWidth; i++)
@@ -287,6 +325,7 @@ int main(void)
 	 */
 
     UnloadTexture(gridSprite);
+    UnloadTexture(backgroundSprite);
     
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------
@@ -307,6 +346,16 @@ Vector2 GetGridPosition (Vector2 mousePos, Vector2 gridPos, int cellOffset, int 
 		return (Vector2) {-1, -1};
 	}
 	return (Vector2){ (int)x, (int)y };
+}
+
+
+bool MouseRightPos( int mousePosX, int mousePosY, int minX, int minY, int sizeX, int sizeY)
+{
+    if (minX < mousePosX && (minX+sizeX) > mousePosX && minY < mousePosY && (minY+sizeY) > mousePosY)
+	{
+	    return true;
+	}
+    return false;
 }
 
 // Function for determining if a move is valid
@@ -431,4 +480,5 @@ void InitGrid(Symbol grid[][8], int gridWidth, int gridHeight, int symbolCount)
 		}
 	}
 }
+
 
