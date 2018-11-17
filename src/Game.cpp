@@ -29,6 +29,7 @@ struct Symbol
 };
 
 Vector2 GetGridPosition(Vector2, Vector2, int, int, float, int, int);
+bool IsValidMove(Vector2, Vector2);
 
 //----------------------------------------------------------------------------------
 // Main entry point
@@ -73,6 +74,10 @@ int main(void)
 				false};
 		}
 	}
+
+	// The cell that was last clicked
+	// -1, -1 means there was no cell
+	Vector2 clickedCell = (Vector2){-1, -1};
 
     int framesCounter = 0;
 
@@ -124,14 +129,40 @@ int main(void)
             } break;
             case GAMEPLAY:
             { 
-                // TODO: Update GAMEPLAY screen variables here!
-
-                // Press enter to change to ENDING screen
+                // Update the game
+				
+				// Handle mouseinput
                 if (IsMouseButtonPressed(0))
                 {
-					Vector2 clickedCell = GetGridPosition(GetMousePosition(), gridPosition, cellOffset, cellSize, gridScale, gridWidth, gridHeight);
-					std::cout << clickedCell.x << " " << clickedCell.y << std::endl;
+					clickedCell = GetGridPosition(GetMousePosition(), gridPosition, cellOffset, cellSize, gridScale, gridWidth, gridHeight);
+					std::cout << "Press:   " << clickedCell.x << ", " << clickedCell.y << std::endl;
                 }
+				else if (IsMouseButtonDown(0))
+				{
+					// Do nothing yet...
+				}
+				else if (IsMouseButtonReleased(0))
+				{
+					Vector2 releasedCell = GetGridPosition(GetMousePosition(), gridPosition, cellOffset, cellSize, gridScale, gridWidth, gridHeight);
+					std::cout << "Release: " << releasedCell.x << ", " << releasedCell.y << std::endl;
+					std::cout << "Move validity: " << IsValidMove(clickedCell, releasedCell) << std::endl;
+					if (IsValidMove(clickedCell, releasedCell))
+					{
+						int cx, cy, rx, ry;
+						cx = (int)clickedCell.x; 
+						cy = (int)clickedCell.y; 
+						rx = (int)releasedCell.x; 
+						ry = (int)releasedCell.y; 
+
+						int temp = grid[cx][cy].type;
+						grid[cx][cy].type = grid[rx][ry].type;
+						grid[rx][ry].type = temp;
+					}
+				}
+				else
+				{
+					clickedCell = (Vector2){-1, -1};
+				}
             } break;
             case ENDING: 
             {
@@ -220,7 +251,8 @@ int main(void)
     return 0;
 }
 
-Vector2 GetGridPosition(Vector2 mousePos, Vector2 gridPos, int cellOffset, int cellSize, float scale, int maxX, int maxY)
+// Function for getting the grid position
+Vector2 GetGridPosition (Vector2 mousePos, Vector2 gridPos, int cellOffset, int cellSize, float scale, int maxX, int maxY)
 {
 	float x, y;
 	x = mousePos.x - gridPos.x - scale * cellOffset;
@@ -232,4 +264,22 @@ Vector2 GetGridPosition(Vector2 mousePos, Vector2 gridPos, int cellOffset, int c
 		return (Vector2) {-1, -1};
 	}
 	return (Vector2){ (int)x, (int)y };
+}
+
+// Function for determining if a move is valid
+bool IsValidMove (Vector2 origin, Vector2 end)
+{
+	if (origin.x == -1 or end.x == -1)
+	{
+		return false;
+	}
+	if (abs(origin.x - end.x) == 1 && origin.y - end.y == 0)
+	{
+		return true;
+	}
+	if (abs(origin.y - end.y) == 1 && origin.x - end.x == 0)
+	{
+		return true;
+	}
+	return false;
 }
