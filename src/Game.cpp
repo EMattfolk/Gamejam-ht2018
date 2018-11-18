@@ -212,6 +212,13 @@ int main(void)
 		LoadTexture("src/sprites/triangle_sprite.png")
 	};
 
+	// Init audio
+	InitAudioDevice();
+	// Load songs
+	Music levels = LoadMusicStream("src/Songs_TxtBeat/Levels.ogg");
+	Music doItTonight = LoadMusicStream("src/Songs_TxtBeat/DoItTonight.ogg");
+
+	PlayMusicStream(doItTonight);
 
     SetTargetFPS(60);
 
@@ -220,6 +227,31 @@ int main(void)
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
+		// Update Sound
+		if (currentScreen == GAMEPLAY)
+		{
+			if (IsMusicPlaying(levels))
+			{
+				UpdateMusicStream(levels);
+			}
+			else
+			{
+				StopMusicStream(doItTonight);
+				PlayMusicStream(levels);
+			}
+		}
+		else
+		{
+			if (IsMusicPlaying(doItTonight))
+			{
+				UpdateMusicStream(doItTonight);
+			}
+			else
+			{
+				StopMusicStream(levels);
+				PlayMusicStream(doItTonight);
+			}
+		}
         // Update
         //-----------------------------------------------------------------------------
         switch(currentScreen) 
@@ -647,6 +679,11 @@ int main(void)
     UnloadTexture(backgroundHouseSprite);
 
     UnloadTexture(backgroundSprite);
+
+	UnloadMusicStream(levels);
+	UnloadMusicStream(doItTonight);
+
+	CloseAudioDevice();
     
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------
