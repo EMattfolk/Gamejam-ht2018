@@ -326,9 +326,10 @@ int main(void)
 				// Update to the frame we are on
                 framesCounter++;
 
-		if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))
+		if (IsKeyPressed(KEY_O))
 		{
-		    currentScreen = ENDING;
+		    targetScreen = ENDING;
+		    currentScreen = SPLASH;
 		    framesCounter = 0;
 
 		}
@@ -684,8 +685,8 @@ int main(void)
 		    DrawRectangle( (screenWidth/2) + 11*gameScale, (screenHeight/3)* 2+1*gameScale, 41*gameScale, 21*gameScale, (Color){0,0,0,64});
 
 		    //Draws the buttons
-		    DrawTextureEx(buttonSprites[0], Vector2 {(screenWidth/2) - 50*gameScale, (screenHeight/3)*2}, 0, gridScale, (Color){255,255,255,255});
-		    DrawTextureEx(buttonSprites[3], Vector2 {(screenWidth/2) + 10*gameScale, (screenHeight/3)*2}, 0, gridScale, (Color){255,255,255,255});
+		    DrawTextureEx(buttonSprites[3], Vector2 {(screenWidth/2) - 50*gameScale, (screenHeight/3)*2}, 0, gridScale, (Color){255,255,255,255});
+		    DrawTextureEx(buttonSprites[0], Vector2 {(screenWidth/2) + 10*gameScale, (screenHeight/3)*2}, 0, gridScale, (Color){255,255,255,255});
 		} break;
 	        case ENDING: 
                 {
