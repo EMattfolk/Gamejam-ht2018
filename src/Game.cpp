@@ -156,8 +156,8 @@ int main(void)
 	// The last cell that was held
 	Vector2 lastHeldCell = (Vector2){-1, -1};
 
-	// Inialize the different scores
-	float currentScore = 200, score = 0;
+	// Inialize the different scores and rates
+	float currentScore = 200, score = 0, negativeRateTime = 0;
 	// Frame counter
 	int framesCounter = 0;
 	// Secs per frame (for time calculations)
@@ -340,50 +340,47 @@ int main(void)
                 }
 				else if (IsMouseButtonDown(0))
 				{
-					/* EXPERIMENTAL DO NOT TOUCH
 					Vector2 holdCell = GetGridPosition(GetMousePosition(), gridPosition, cellOffset, cellSize, gridScale, gridWidth, gridHeight);
-					if (holdCell.x != lastHeldCell.x || holdCell.y != lastHeldCell.y)
+					grid[(int)lastHeldCell.x][(int)lastHeldCell.y].target_pos = lastHeldCell;
+					if (IsValidMove(clickedCell, holdCell))
 					{
-						grid[(int)holdCell.x][(int)holdCell.y].target_pos = grid[(int)lastHeldCell.x][(int)lastHeldCell.y].position;
-						grid[(int)lastHeldCell.x][(int)lastHeldCell.y].target_pos = grid[(int)holdCell.x][(int)holdCell.y].position;
+						grid[(int)holdCell.x][(int)holdCell.y].target_pos = clickedCell;
+						grid[(int)clickedCell.x][(int)clickedCell.y].target_pos = holdCell;
 					}
-					if (holdCell.x != clickedCell.x && holdCell.y != clickedCell.y && IsValidMove(clickedCell, holdCell))
+					else
 					{
-						grid[(int)holdCell.x][(int)holdCell.y].target_pos = grid[(int)clickedCell.x][(int)clickedCell.y].position;
-						grid[(int)clickedCell.x][(int)clickedCell.y].target_pos = grid[(int)holdCell.x][(int)holdCell.y].position;
+						grid[(int)clickedCell.x][(int)clickedCell.y].target_pos = clickedCell;
 					}
+
 					lastHeldCell = holdCell;
-					*/
 				}
 				else if (IsMouseButtonReleased(0))
 				{
 					Vector2 releasedCell = GetGridPosition(GetMousePosition(), gridPosition, cellOffset, cellSize, gridScale, gridWidth, gridHeight);
 
+					int cx, cy, rx, ry;
+					cx = (int)clickedCell.x; 
+					cy = (int)clickedCell.y; 
+					rx = (int)releasedCell.x; 
+					ry = (int)releasedCell.y; 
+
 					if (IsValidMove(clickedCell, releasedCell))
 					{
-						int cx, cy, rx, ry;
-						cx = (int)clickedCell.x; 
-						cy = (int)clickedCell.y; 
-						rx = (int)releasedCell.x; 
-						ry = (int)releasedCell.y; 
-
 						Symbol temp = grid[cx][cy];
 						grid[cx][cy] = grid[rx][ry];
 						grid[rx][ry] = temp;
 
 						streaks = GetStreaks(grid, gridWidth, gridHeight);
-						if (streaks.size())
-						{
-							grid[cx][cy].target_pos = grid[rx][ry].position;
-							grid[rx][ry].target_pos = grid[cx][cy].position;
-						}
-						else
+						if (!streaks.size())
 						{
 							temp = grid[cx][cy];
 							grid[cx][cy] = grid[rx][ry];
 							grid[rx][ry] = temp;
 						}
 					}
+
+					grid[rx][ry].target_pos = releasedCell;
+					grid[cx][cy].target_pos = clickedCell;
 				}
 				else
 				{
@@ -421,15 +418,25 @@ int main(void)
 							int extraScore = 0;
 							if (currentBeat != beats.size() && beats[currentBeat] - currentTime < 0.2)
 							{
-								extraScore += 100;
+								extraScore += 200;
 							}
-							ModifyScore(&score, &currentScore, secsPerFrame, (*it).length, extraScore);
+							if ((*it).length > 4) negativeRateTime = 3.0f;
+							ModifyScore(&score, &currentScore, 0, (*it).length, extraScore);
 						}
 					}
 					RespawnSymbols(grid, gridWidth, gridHeight, symbolCount);
 				}
 
-			ModifyScore(&score, &currentScore, framesCounter * secsPerFrame, 0, 0);
+			if (negativeRateTime > 0)
+			{
+				ModifyScore(&score, &currentScore, -1, 0, 0);
+			}
+			else
+			{
+				ModifyScore(&score, &currentScore, framesCounter * secsPerFrame, 0, 0);
+			}
+
+			negativeRateTime -= secsPerFrame;
 
 			// When done go to end screen
 			if (currentScore < 0 || currentBeat == beats.size())
@@ -559,7 +566,7 @@ int main(void)
 
 			// Draw the arrow(s) in the bar
 			Vector2 arrowPos;
-			if (GetScoreRate(framesCounter * secsPerFrame) < 0)
+			if (negativeRateTime > 0)
 			{
 				arrowPos = (Vector2){ barPosition.x + 2 * gameScale, barPosition.y + 152 * gameScale - barHeight - 12 * gameScale};
 				DrawTextureEx(upArrowSprite, arrowPos, 0, gridScale, (Color){255,255,255,255});
@@ -976,9 +983,12 @@ void ModifyScore(float *score, float *currentScore, float gameTime, int combo, i
 		*score += 200 * multiplier;
 		*currentScore += 200;
 	}
+	// Calculate the rate and its multiplier
 	float rateMultiplier = 1.0f + *currentScore / 1000;
+	float rate = GetScoreRate(gameTime) * rateMultiplier;
+	if (gameTime < 0) rate = -1.0f / 60;
 	// Remove rate from currentScore
-	*currentScore -= GetScoreRate(gameTime) * rateMultiplier;
+	*currentScore -= rate;
 	// Clamp current score
 	if (*currentScore > 1000)
 	{
