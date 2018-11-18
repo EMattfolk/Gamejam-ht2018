@@ -100,15 +100,15 @@ int main(void)
 
 	// Initialize beat timings
 	std::vector<float> beats = {};
-	//std::ifstream beatFile;
-	//beatFile.open("src/Songs_TxtBeat/time_list_avicii_levels.txt");
+	std::ifstream beatFile;
+	beatFile.open("src/Songs_TxtBeat/time_list_avicii_levels_new.txt");
 	int beatn = 1;
 	while (beatn <= 190)
 	{
-		//float temp;
-		//beatFile >> temp;
-		//if (beatn % 2 == 0) 
-		beats.push_back(beatn * (1 / 1.05f));
+		float temp;
+		beatFile >> temp;
+		if (beatn % 2 == 0) 
+		beats.push_back(temp);
 		beatn++;
 	}
 
