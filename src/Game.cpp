@@ -20,6 +20,7 @@
 #include "stdlib.h"
 #include "time.h"
 #include <iostream>
+#include <fstream>
 #include <vector>
 
 //----------------------------------------------------------------------------------
@@ -59,7 +60,7 @@ bool MarkStreak(Symbol[][8], Streak);
 void InitGrid(Symbol[][8], int, int, int);
 intTrio BackgroundAnimation(int,int,int);
 void RespawnSymbols(Symbol[][8], int, int, int);
-void ModifyScore(float*, float*, float, int);
+void ModifyScore(float*, float*, float, int, int);
 float GetScoreRate(float);
 
 //----------------------------------------------------------------------------------
@@ -95,6 +96,22 @@ int main(void)
     intTrio aniTrio = {0,0,0};
     GameScreen targetScreen = TITLE;
 
+	// Initialize beat timings
+	std::vector<float> beats = {};
+	//std::ifstream beatFile;
+	//beatFile.open("src/Songs_TxtBeat/time_list_avicii_levels.txt");
+	int beatn = 1;
+	while (beatn <= 190)
+	{
+		//float temp;
+		//beatFile >> temp;
+		//if (beatn % 2 == 0) 
+		beats.push_back(beatn * (1 / 1.05f));
+		beatn++;
+	}
+
+	// Set the current beat
+	int currentBeat = 0;
 
     // Initalize the grid, element access with [x][y]
     Symbol grid[gridWidth][gridHeight] = {};
@@ -171,6 +188,8 @@ int main(void)
 
 	Texture2D barSprite = LoadTexture("src/sprites/bar_sprite.png");
 
+	Texture2D beatSprite = LoadTexture("src/sprites/beat_sprite.png");
+
 	Texture2D upArrowSprite = LoadTexture("src/sprites/arrow_up_sprite.png");
 
 	Texture2D downArrowSprite = LoadTexture("src/sprites/arrow_down_sprite.png");
@@ -236,6 +255,7 @@ int main(void)
 		    targetScreen = GAMEPLAY;
                     currentScreen = SPLASH;
 					currentScore = 200;
+					currentBeat = 0;
                 } 
 
             } break;
@@ -324,6 +344,7 @@ int main(void)
 					}
 				}
 
+				float currentTime = secsPerFrame * framesCounter;
 				streaks = GetStreaks(grid, gridWidth, gridHeight);
 				if (streaks.size())
 				{
@@ -331,16 +352,21 @@ int main(void)
 					{
 						if (MarkStreak(grid, *it))
 						{
-							ModifyScore(&score, &currentScore, secsPerFrame, (*it).length);
+							int extraScore = 0;
+							if (currentBeat != beats.size() && beats[currentBeat] - currentTime < 0.2)
+							{
+								extraScore += 100;
+							}
+							ModifyScore(&score, &currentScore, secsPerFrame, (*it).length, extraScore);
 						}
 					}
 					RespawnSymbols(grid, gridWidth, gridHeight, symbolCount);
 				}
 
-			ModifyScore(&score, &currentScore, framesCounter * secsPerFrame, 0);
+			ModifyScore(&score, &currentScore, framesCounter * secsPerFrame, 0, 0);
 
 			// When done go to end screen
-			if (currentScore < 0)
+			if (currentScore < 0 || currentBeat == beats.size())
 			{
 				currentScreen = ENDING;
 			}
@@ -459,6 +485,31 @@ int main(void)
 			{
 				arrowPos = (Vector2){ barPosition.x + 2 * gameScale, barPosition.y + 152 * gameScale - barHeight + 2 * gameScale};
 				DrawTextureEx(downArrowSprite, arrowPos, 0, gridScale, (Color){255,255,255,255});
+			}
+
+			// Draw beat indicators
+			float currentTime = secsPerFrame * framesCounter;
+			for (int b = currentBeat; b < beats.size(); b++)
+			{
+				if (beats[b] < currentTime)
+				{
+					currentBeat++;
+					continue;
+				}
+				float delta = beats[b] - currentTime;
+				if (delta < 2)
+				{
+					delta -= 0.2;
+					// Set color to fade beat
+					Color c;
+					if (delta < 0) c = (Color){255,255,255,(int)(255 * (delta + 0.2f) / 0.2f)};
+					else c = (Color){255,255,255,255};
+					// Draw beat
+					Vector2 beatPosition1 = (Vector2){ barPosition.x - 10 * gameScale - (int)(35 * delta * gameScale), barPosition.y + 51 * gameScale};
+					Vector2 beatPosition2 = (Vector2){ gridPosition.x + 96 * gameScale + (int)(35 * delta * gameScale), barPosition.y + 51 * gameScale};
+					DrawTextureEx(beatSprite, beatPosition1, 0, gridScale, c);
+					DrawTextureEx(beatSprite, beatPosition2, 0, gridScale, c);
+				}
 			}
 
 		    // DRAW THE GRID
@@ -781,7 +832,7 @@ intTrio BackgroundAnimation(int animationTimer, int houseAnimationCycle, int sky
 }
 
 // Update the score
-void ModifyScore(float *score, float *currentScore, float gameTime, int combo)
+void ModifyScore(float *score, float *currentScore, float gameTime, int combo, int extraScore)
 {
 	// Get multiplier for score
 	float multiplier = 1.0f;
@@ -822,6 +873,10 @@ void ModifyScore(float *score, float *currentScore, float gameTime, int combo)
 	{
 		*currentScore = 1000.0f;
 	}
+	// Add the extra score
+	*score += extraScore;
+	// Test
+	if (extraScore) std::cout << "Extra score get" << std::endl;
 }
 
 // Returns the rate at which the current score is decreasing
