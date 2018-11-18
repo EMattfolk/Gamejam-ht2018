@@ -202,6 +202,12 @@ int main(void)
 
                 framesCounter++;    // Count frames
 
+		if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))
+		{
+		    currentScreen = TITLE;
+		    framesCounter = 0;
+
+		}
                 // Wait for fadeInTime before jumping to TITLE screen
                 if (framesCounter > fadeInTime)
                 {
@@ -215,6 +221,12 @@ int main(void)
 
                 framesCounter++;    // Count frames
 
+		if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))
+		{
+		    currentScreen = targetScreen;
+		    framesCounter = 0;
+
+		}
                 // Wait for fadeInTime before jumping to TITLE screen
                 if (framesCounter > fadeInTime/3)
                 {
@@ -242,7 +254,13 @@ int main(void)
 
 				// Update to the frame we are on
                 framesCounter++;
-				
+
+		if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))
+		{
+		    currentScreen = ENDING;
+		    framesCounter = 0;
+
+		}
 				// Handle mouseinput
                 if (IsMouseButtonPressed(0))
                 {
@@ -397,8 +415,8 @@ int main(void)
 		    //Draws both the button text and Background text
 		    // DrawText("RUN", (screenWidth/2) - 49*gameScale, (screenHeight/3)* 2+gameScale, 58, (Color){233,0,132,255});
                     // DrawText("SCORE", (screenWidth/2) + 11*gameScale, ((screenHeight/3)+7) * 2+gameScale, 34, (Color){233,0,132,255});
-		    DrawText("S-Wave Unlimited", 0, 110, 40, WHITE);
-                    DrawText("Play the game or see the leaderboard!", 0, 150, 20, GRAY);
+		    DrawText("S-Wave Unlimited", 3*gameScale, 37*gameScale, 40, WHITE);
+                    DrawText("Play the game or see the leaderboard!", 3*gameScale, 50*gameScale, 20, GRAY);
                     
                 } break;
                 case GAMEPLAY:
@@ -455,11 +473,20 @@ int main(void)
                 } break;
                 case ENDING: 
                 {
-                    // TODO: Draw ENDING screen here!
-                    DrawRectangle(0, 0, screenWidth, screenHeight, BLUE);
-                    DrawText("ENDING SCREEN", 20, 20, 40, DARKBLUE);
-                    DrawText("PRESS ENTER or TAP to RETURN to TITLE SCREEN", 120, 220, 20, DARKBLUE);
-                    
+		    //Recives the correct position modifers from the function
+		    aniTrio = BackgroundAnimation(aniTrio.timer, aniTrio.houseCycle, aniTrio.skyCycle );
+		    
+		    // Applies the houseCycle modifer to the house textture pos
+		    float houseY =  ((22 * gameScale)*sinf(aniTrio.houseCycle/30.55775f))+22*gameScale;
+		    Vector2 housePosition = (Vector2) {0, houseY}; 
+
+		    //Draws the Background and Houses
+		    DrawTextureEx(backgroundSprites[aniTrio.skyCycle], backgroundPosition, 0, gridScale, (Color){255,255,255,255});
+		    DrawTextureEx(backgroundHouseSprite, housePosition, 0, gridScale, (Color){255,255,255,255});
+
+		    DrawRectangle((screenWidth/2) - (80* gameScale), 100*gameScale, 160*gameScale, 30*gameScale, (Color){0,0,0,255});
+                    DrawText("200'000", (screenWidth/2) - (75* gameScale), 103*gameScale, 80, WHITE);
+		    
                 } break;
                 default: break;
             }
