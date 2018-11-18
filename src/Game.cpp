@@ -20,6 +20,7 @@
 #include "stdlib.h"
 #include "time.h"
 #include <iostream>
+#include <algorithm>
 #include <fstream>
 #include <vector>
 #include <string>
@@ -103,7 +104,7 @@ int main(void)
 	std::ifstream beatFile;
 	beatFile.open("src/Songs_TxtBeat/time_list_avicii_levels_new.txt");
 	int beatn = 1;
-	while (beatn <= 190)
+	while (!beatFile.eof())
 	{
 		float temp;
 		beatFile >> temp;
@@ -111,6 +112,7 @@ int main(void)
 		beats.push_back(temp);
 		beatn++;
 	}
+	beatFile.close();
 
 	// Set the current beat
 	int currentBeat = 0;
@@ -148,6 +150,18 @@ int main(void)
 		streaks = GetStreaks(grid, gridWidth, gridHeight);
 		iters++;
 	}
+
+	// Load scores
+	std::vector<int> highScores = {};
+	std::ifstream scoreFile;
+	scoreFile.open("src/scores.txt");
+	while (!scoreFile.eof())
+	{
+		int temp;
+		scoreFile >> temp;
+		highScores.push_back(temp);
+	}
+	scoreFile.close();
 
 	// The cell that was last clicked
 	// -1, -1 means there was no cell
@@ -443,6 +457,15 @@ int main(void)
 			{
 			    targetScreen = ENDING;
 			    currentScreen = SPLASH;
+				highScores.push_back((int)score);
+				std::sort(highScores.begin(), highScores.end(), std::greater<int>());
+				std::ofstream scoreFile;
+	            scoreFile.open("src/scores.txt");
+				for (int i = 0; i < 20 && i < highScores.size(); i++)
+				{
+					scoreFile << highScores[i] << "\n";
+				}
+				scoreFile.close();
 			}
 			
 	    } break;
@@ -484,6 +507,7 @@ int main(void)
                 {
 		    targetScreen = TITLE;
                     currentScreen = SPLASH;
+					score = 0;
                 }
             } break;
             default: break;
