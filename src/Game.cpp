@@ -84,7 +84,7 @@ int main(void)
     const int cellSize = 19;
     const int cellOffset = 1;
     const int fadeInTime = 900;
-    const Vector2 scorePosition = {(screenWidth/2)-50*gameScale , (screenHeight/2) - 90* gameScale};
+    const Vector2 scorePosition = {(screenWidth/2)-30*gameScale , (screenHeight/2) - 105* gameScale};
     const Vector2 gridPosition = { (screenWidth/2)-38*gameScale , (screenHeight/2) - 79* gameScale};
     const Vector2 barPosition = { gridPosition.x - 15 * gameScale, gridPosition.y };
     const Vector2 backgroundPosition {0,0};
@@ -518,8 +518,8 @@ int main(void)
 		    DrawTextureEx(scoreSprite, scorePosition, 0, gridScale, (Color){255,255,255,255});
 
 		    // Draw Score Text
-		    DrawText("SCORE:", (screenWidth/2)-50*gameScale , (screenHeight/2) - 90* gameScale, 20, (Color){234,0,147,255});
-		    DrawText(s.c_str(), (screenWidth/2)-42*gameScale , (screenHeight/2) - 82* gameScale, 20, (Color){234,0,147,255});
+		    DrawText("SCORE:", (screenWidth/2)-25*gameScale , (screenHeight/2) - 105* gameScale, 35, (Color){219,21,206,255});
+		    DrawText(s.c_str(), (screenWidth/2)-25*gameScale , (screenHeight/2) - 92* gameScale, 35, (Color){219,21,206,255});
 
 			// Draw rectangle in bar depending on score
 			int barHeight = (int)(151 * gameScale * currentScore / 1000);
@@ -598,8 +598,8 @@ int main(void)
 		    DrawTextureEx(scoreSprite, Vector2 {(screenWidth/2) - (90* gameScale), 57*gameScale}, 0, gridScale*3, (Color){255,255,255,255});
 		    
 		    //DrawRectangle((screenWidth/2) - (55* gameScale), 100*gameScale, 112*gameScale, 30*gameScale, (Color){0,0,0,255});
-		    DrawText("SCORE:", (screenWidth/2) - (50* gameScale), 30*gameScale, 80, (Color){234,0,147,255});
-		    DrawText(s.c_str(), (screenWidth/2) - (85* gameScale), 70*gameScale, 160, (Color){234,0,147,255});
+		    DrawText("SCORE:", (screenWidth/2) - (50* gameScale), 30*gameScale, 80, (Color){219,21,206,255});
+		    DrawText(s.c_str(), (screenWidth/2) - (85* gameScale), 70*gameScale, 160, (Color){219,21,206,255});
 
 		    //Draws the button shadow
 		    DrawRectangle( (screenWidth/2) - 49*gameScale, (screenHeight/3)* 2+1*gameScale, 41*gameScale, 21*gameScale, (Color){0,0,0,64});
