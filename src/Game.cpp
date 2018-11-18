@@ -1100,5 +1100,5 @@ void ModifyScore(float *score, float *currentScore, float gameTime, int combo, i
 // Returns the rate at which the current score is decreasing
 float GetScoreRate (float time)
 {
-	return pow(time, 0.5f) / 60;
+	return pow(time, 0.55f) / 60;
 }
