@@ -210,8 +210,9 @@ int main(void)
 	InitAudioDevice();
 	// Load songs
 	Music levels = LoadMusicStream("src/Songs_TxtBeat/Levels.ogg");
+	Music doItTonight = LoadMusicStream("src/Songs_TxtBeat/DoItTonight.ogg");
 
-	PlayMusicStream(levels);
+	PlayMusicStream(doItTonight);
 
     SetTargetFPS(60);
 
@@ -220,7 +221,31 @@ int main(void)
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
-		std::cout << IsMusicPlaying(levels) << std::endl;
+		// Update Sound
+		if (currentScreen == GAMEPLAY)
+		{
+			if (IsMusicPlaying(levels))
+			{
+				UpdateMusicStream(levels);
+			}
+			else
+			{
+				StopMusicStream(doItTonight);
+				PlayMusicStream(levels);
+			}
+		}
+		else
+		{
+			if (IsMusicPlaying(doItTonight))
+			{
+				UpdateMusicStream(doItTonight);
+			}
+			else
+			{
+				StopMusicStream(levels);
+				PlayMusicStream(doItTonight);
+			}
+		}
         // Update
         //-----------------------------------------------------------------------------
         switch(currentScreen) 
@@ -281,7 +306,6 @@ int main(void)
             case GAMEPLAY:
             { 
                 // Update the game
-				UpdateMusicStream(levels);
 
 				// Update to the frame we are on
                 framesCounter++;
@@ -610,6 +634,7 @@ int main(void)
     UnloadTexture(backgroundSprite);
 
 	UnloadMusicStream(levels);
+	UnloadMusicStream(doItTonight);
 
 	CloseAudioDevice();
     
