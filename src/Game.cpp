@@ -154,8 +154,8 @@ int main(void)
 	// The last cell that was held
 	Vector2 lastHeldCell = (Vector2){-1, -1};
 
-	// Inialize the different scores
-	float currentScore = 200, score = 0;
+	// Inialize the different scores and rates
+	float currentScore = 200, score = 0, negativeRateTime = 0;
 	// Frame counter
 	int framesCounter = 0;
 	// Secs per frame (for time calculations)
@@ -405,15 +405,25 @@ int main(void)
 							int extraScore = 0;
 							if (currentBeat != beats.size() && beats[currentBeat] - currentTime < 0.2)
 							{
-								extraScore += 100;
+								extraScore += 200;
 							}
-							ModifyScore(&score, &currentScore, secsPerFrame, (*it).length, extraScore);
+							if ((*it).length > 4) negativeRateTime = 3.0f;
+							ModifyScore(&score, &currentScore, 0, (*it).length, extraScore);
 						}
 					}
 					RespawnSymbols(grid, gridWidth, gridHeight, symbolCount);
 				}
 
-			ModifyScore(&score, &currentScore, framesCounter * secsPerFrame, 0, 0);
+			if (negativeRateTime > 0)
+			{
+				ModifyScore(&score, &currentScore, -1, 0, 0);
+			}
+			else
+			{
+				ModifyScore(&score, &currentScore, framesCounter * secsPerFrame, 0, 0);
+			}
+
+			negativeRateTime -= secsPerFrame;
 
 			// When done go to end screen
 			if (currentScore < 0 || currentBeat == beats.size())
@@ -526,7 +536,7 @@ int main(void)
 
 			// Draw the arrow(s) in the bar
 			Vector2 arrowPos;
-			if (GetScoreRate(framesCounter * secsPerFrame) < 0)
+			if (negativeRateTime > 0)
 			{
 				arrowPos = (Vector2){ barPosition.x + 2 * gameScale, barPosition.y + 152 * gameScale - barHeight - 12 * gameScale};
 				DrawTextureEx(upArrowSprite, arrowPos, 0, gridScale, (Color){255,255,255,255});
@@ -929,9 +939,12 @@ void ModifyScore(float *score, float *currentScore, float gameTime, int combo, i
 		*score += 200 * multiplier;
 		*currentScore += 200;
 	}
+	// Calculate the rate and its multiplier
 	float rateMultiplier = 1.0f + *currentScore / 1000;
+	float rate = GetScoreRate(gameTime) * rateMultiplier;
+	if (gameTime < 0) rate = -1.0f / 60;
 	// Remove rate from currentScore
-	*currentScore -= GetScoreRate(gameTime) * rateMultiplier;
+	*currentScore -= rate;
 	// Clamp current score
 	if (*currentScore > 1000)
 	{
