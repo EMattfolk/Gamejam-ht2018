@@ -356,7 +356,6 @@ int main(void)
 							if (currentBeat != beats.size() && beats[currentBeat] - currentTime < 0.2)
 							{
 								extraScore += 100;
-								std::cout << "Beat hit" << std::endl;
 							}
 							ModifyScore(&score, &currentScore, secsPerFrame, (*it).length, extraScore);
 						}
@@ -500,10 +499,16 @@ int main(void)
 				float delta = beats[b] - currentTime;
 				if (delta < 2)
 				{
+					delta -= 0.2;
+					// Set color to fade beat
+					Color c;
+					if (delta < 0) c = (Color){255,255,255,(int)(255 * (delta + 0.2f) / 0.2f)};
+					else c = (Color){255,255,255,255};
+					// Draw beat
 					Vector2 beatPosition1 = (Vector2){ barPosition.x - 10 * gameScale - (int)(35 * delta * gameScale), barPosition.y + 51 * gameScale};
 					Vector2 beatPosition2 = (Vector2){ gridPosition.x + 96 * gameScale + (int)(35 * delta * gameScale), barPosition.y + 51 * gameScale};
-					DrawTextureEx(beatSprite, beatPosition1, 0, gridScale, (Color){255,255,255,255});
-					DrawTextureEx(beatSprite, beatPosition2, 0, gridScale, (Color){255,255,255,255});
+					DrawTextureEx(beatSprite, beatPosition1, 0, gridScale, c);
+					DrawTextureEx(beatSprite, beatPosition2, 0, gridScale, c);
 				}
 			}
 
@@ -870,6 +875,8 @@ void ModifyScore(float *score, float *currentScore, float gameTime, int combo, i
 	}
 	// Add the extra score
 	*score += extraScore;
+	// Test
+	if (extraScore) std::cout << "Extra score get" << std::endl;
 }
 
 // Returns the rate at which the current score is decreasing
