@@ -144,7 +144,7 @@ int main(void)
 	// Secs per frame (for time calculations)
 	float secsPerFrame = 1.0f / 60;
 
-    /*
+	/*
 	 * Initialize textures
 	 */
 
