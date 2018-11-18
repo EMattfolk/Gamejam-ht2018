@@ -60,7 +60,7 @@ bool MarkStreak(Symbol[][8], Streak);
 void InitGrid(Symbol[][8], int, int, int);
 intTrio BackgroundAnimation(int,int,int);
 void RespawnSymbols(Symbol[][8], int, int, int);
-void ModifyScore(float*, float*, float, int);
+void ModifyScore(float*, float*, float, int, int);
 float GetScoreRate(float);
 
 //----------------------------------------------------------------------------------
@@ -255,6 +255,7 @@ int main(void)
 		    targetScreen = GAMEPLAY;
                     currentScreen = SPLASH;
 					currentScore = 200;
+					currentBeat = 0;
                 } 
 
             } break;
@@ -343,6 +344,7 @@ int main(void)
 					}
 				}
 
+				float currentTime = secsPerFrame * framesCounter;
 				streaks = GetStreaks(grid, gridWidth, gridHeight);
 				if (streaks.size())
 				{
@@ -350,13 +352,19 @@ int main(void)
 					{
 						if (MarkStreak(grid, *it))
 						{
-							ModifyScore(&score, &currentScore, secsPerFrame, (*it).length);
+							int extraScore = 0;
+							if (currentBeat != beats.size() && beats[currentBeat] - currentTime < 0.2)
+							{
+								extraScore += 100;
+								std::cout << "Beat hit" << std::endl;
+							}
+							ModifyScore(&score, &currentScore, secsPerFrame, (*it).length, extraScore);
 						}
 					}
 					RespawnSymbols(grid, gridWidth, gridHeight, symbolCount);
 				}
 
-			ModifyScore(&score, &currentScore, framesCounter * secsPerFrame, 0);
+			ModifyScore(&score, &currentScore, framesCounter * secsPerFrame, 0, 0);
 
 			// When done go to end screen
 			if (currentScore < 0 || currentBeat == beats.size())
@@ -819,7 +827,7 @@ intTrio BackgroundAnimation(int animationTimer, int houseAnimationCycle, int sky
 }
 
 // Update the score
-void ModifyScore(float *score, float *currentScore, float gameTime, int combo)
+void ModifyScore(float *score, float *currentScore, float gameTime, int combo, int extraScore)
 {
 	// Get multiplier for score
 	float multiplier = 1.0f;
@@ -860,6 +868,8 @@ void ModifyScore(float *score, float *currentScore, float gameTime, int combo)
 	{
 		*currentScore = 1000.0f;
 	}
+	// Add the extra score
+	*score += extraScore;
 }
 
 // Returns the rate at which the current score is decreasing
