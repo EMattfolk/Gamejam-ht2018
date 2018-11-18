@@ -661,8 +661,8 @@ int main(void)
 			{
 			    DrawTextureEx(scoreSprite, Vector2 {(screenWidth/2) - (65* gameScale), (10*gameScale) + i/2*25*gameScale}, 0, gridScale, (Color){255,255,255,255});
 			}
-			DrawText("SCORE:", (screenWidth/2) - (50* gameScale), (10*gameScale) + (i*25*gameScale), 20, (Color){219,21,206,255});
-			DrawText(s.c_str(), (screenWidth/2) - (85* gameScale),(10*gameScale) + (i* 70*gameScale), 20, (Color){219,21,206,255});
+			DrawText("SCORE:", (screenWidth/2) - (63* gameScale), (10*gameScale) + (int)(i*12.5*gameScale), 25, (Color){219,21,206,255});
+			DrawText(s.c_str(), (screenWidth/2) - (30* gameScale),(10*gameScale) + (int)(i*12.5*gameScale), 25, (Color){219,21,206,255});
 
 		    }
 
@@ -674,8 +674,8 @@ int main(void)
 			}
 			
 		    
-			DrawText("SCORE:", (screenWidth/2) - (50* gameScale), (10*gameScale) + (i*25*gameScale), 20, (Color){219,21,206,255});
-			DrawText(s.c_str(), (screenWidth/2) - (85* gameScale),(10*gameScale) + (i* 70*gameScale), 20, (Color){219,21,206,255});
+			DrawText("SCORE:", (screenWidth/2) + (8* gameScale), (10*gameScale) + (int)(i*12.5*gameScale), 25, (Color){219,21,206,255});
+			DrawText(s.c_str(), (screenWidth/2) + (40* gameScale),(10*gameScale) + (int)(i*12.5*gameScale), 25, (Color){219,21,206,255});
 
 		    }
 		    
