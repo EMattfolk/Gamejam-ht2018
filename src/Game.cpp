@@ -206,6 +206,12 @@ int main(void)
 		LoadTexture("src/sprites/triangle_sprite.png")
 	};
 
+	// Init audio
+	InitAudioDevice();
+	// Load songs
+	Music levels = LoadMusicStream("src/Songs_TxtBeat/Levels.ogg");
+
+	PlayMusicStream(levels);
 
     SetTargetFPS(60);
 
@@ -214,6 +220,7 @@ int main(void)
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
+		std::cout << IsMusicPlaying(levels) << std::endl;
         // Update
         //-----------------------------------------------------------------------------
         switch(currentScreen) 
@@ -274,6 +281,7 @@ int main(void)
             case GAMEPLAY:
             { 
                 // Update the game
+				UpdateMusicStream(levels);
 
 				// Update to the frame we are on
                 framesCounter++;
@@ -600,6 +608,10 @@ int main(void)
     UnloadTexture(backgroundHouseSprite);
 
     UnloadTexture(backgroundSprite);
+
+	UnloadMusicStream(levels);
+
+	CloseAudioDevice();
     
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------
