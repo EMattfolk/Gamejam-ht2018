@@ -682,6 +682,8 @@ int main(void)
 
 		    for(int i = 0; i < 10; i++)
 		    {
+			if (i < highScores.size()) s = std::to_string((int)highScores[i]);
+			else s = std::to_string(0);
 			if (i % 2 == 0)
 			{
 			    DrawTextureEx(scoreSprite, Vector2 {(screenWidth/2) - (65* gameScale), (10*gameScale) + i/2*25*gameScale}, 0, gridScale, (Color){255,255,255,255});
@@ -693,6 +695,8 @@ int main(void)
 
 		    for(int i = 0; i < 10; i++)
 		    {
+			if (i+10 < highScores.size()) s = std::to_string((int)highScores[i+10]);
+			else s = std::to_string(0);
 			if (i % 2 == 0)
 			{
 			    DrawTextureEx(scoreSprite, Vector2 {(screenWidth/2) + (5* gameScale), (10*gameScale) + i/2*25*gameScale}, 0, gridScale, (Color){255,255,255,255});
