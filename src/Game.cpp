@@ -22,6 +22,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
@@ -82,9 +83,10 @@ int main(void)
     const float gridScale = 3.0f;
     const int cellSize = 19;
     const int cellOffset = 1;
-    const int fadeInTime = 900;  
+    const int fadeInTime = 900;
+    const Vector2 scorePosition = {(screenWidth/2)-30*gameScale , (screenHeight/2) - 105* gameScale};
     const Vector2 gridPosition = { (screenWidth/2)-38*gameScale , (screenHeight/2) - 79* gameScale};
-	const Vector2 barPosition = { gridPosition.x - 15 * gameScale, gridPosition.y };
+    const Vector2 barPosition = { gridPosition.x - 15 * gameScale, gridPosition.y };
     const Vector2 backgroundPosition {0,0};
     InitWindow(screenWidth, screenHeight, "S-Wave");
 
@@ -181,7 +183,9 @@ int main(void)
 	Texture2D buttonSprites [] =
 	{
 	    LoadTexture("src/sprites/play_button.png"),
-	    LoadTexture("src/sprites/score_button.png")
+	    LoadTexture("src/sprites/score_button.png"),
+	    LoadTexture("src/sprites/retry_button.png"),
+	    LoadTexture("src/sprites/title_button.png")
 	};
 
 	Texture2D backgroundHouseSprite = LoadTexture("src/sprites/buildings.png");
@@ -190,6 +194,8 @@ int main(void)
 
 	Texture2D beatSprite = LoadTexture("src/sprites/beat_sprite.png");
 
+	Texture2D scoreSprite = LoadTexture("src/sprites/score_bar_sprite.png");
+	
 	Texture2D upArrowSprite = LoadTexture("src/sprites/arrow_up_sprite.png");
 
 	Texture2D downArrowSprite = LoadTexture("src/sprites/arrow_down_sprite.png");
@@ -279,13 +285,16 @@ int main(void)
 		{
 		    currentScreen = targetScreen;
 		    framesCounter = 0;
-
+		    currentScore = 200;
+		    currentBeat = 0;
 		}
                 // Wait for fadeInTime before jumping to TITLE screen
                 if (framesCounter > fadeInTime/3)
                 {
                     currentScreen = targetScreen;
 		    framesCounter = 0;
+		    currentScore = 200;
+		    currentBeat = 0;
                 }
             } break;
             case TITLE: 
@@ -294,13 +303,20 @@ int main(void)
 
                 // Press enter or the button to change the screen 
       
-		if (IsKeyPressed(KEY_ENTER) || (IsGestureDetected(GESTURE_TAP) &&  MouseRightPos( GetMouseX(),  GetMouseY(), (screenWidth/2) - 50*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale)))
+		if( (IsGestureDetected(GESTURE_TAP) &&  MouseRightPos( GetMouseX(),  GetMouseY(), (screenWidth/2) - 50*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale)))
                 {
 		    targetScreen = GAMEPLAY;
                     currentScreen = SPLASH;
-					currentScore = 200;
-					currentBeat = 0;
-                } 
+		    currentScore = 200;
+		    currentBeat = 0;
+                }
+		else if( (IsGestureDetected(GESTURE_TAP) &&  MouseRightPos( GetMouseX(),  GetMouseY(), (screenWidth/2) + 10*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale)))
+                {
+		    targetScreen = GAMEPLAY;
+                    currentScreen = SPLASH;
+		    currentScore = 200;
+		    currentBeat = 0;
+                }
 
             } break;
             case GAMEPLAY:
@@ -418,7 +434,8 @@ int main(void)
 			// When done go to end screen
 			if (currentScore < 0 || currentBeat == beats.size())
 			{
-				currentScreen = ENDING;
+			    targetScreen = ENDING;
+			    currentScreen = SPLASH;
 			}
             
 			} break;
@@ -426,11 +443,19 @@ int main(void)
             {
                 // TODO: Update ENDING screen variables here!
 
-                // Press enter to return to TITLE screen
-                if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
+                // Press to return to TITLE screen / GAMEPLAY screen
+		if( (IsGestureDetected(GESTURE_TAP) &&  MouseRightPos( GetMouseX(),  GetMouseY(), (screenWidth/2) - 50*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale)))
                 {
-                    currentScreen = TITLE;
-                }  
+		    targetScreen = GAMEPLAY;
+                    currentScreen = SPLASH;
+		    currentScore = 200;
+		    currentBeat = 0;
+                }
+		else if( (IsGestureDetected(GESTURE_TAP) &&  MouseRightPos( GetMouseX(),  GetMouseY(), (screenWidth/2) + 10*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale)))
+                {
+		    targetScreen = TITLE;
+                    currentScreen = SPLASH;
+                }
             } break;
             default: break;
         }
@@ -498,14 +523,15 @@ int main(void)
 		    //Draws both the button text and Background text
 		    // DrawText("RUN", (screenWidth/2) - 49*gameScale, (screenHeight/3)* 2+gameScale, 58, (Color){233,0,132,255});
                     // DrawText("SCORE", (screenWidth/2) + 11*gameScale, ((screenHeight/3)+7) * 2+gameScale, 34, (Color){233,0,132,255});
-		    DrawText("S-Wave Unlimited", 3*gameScale, 37*gameScale, 40, WHITE);
-                    DrawText("Play the game or see the leaderboard!", 3*gameScale, 50*gameScale, 20, GRAY);
+		    DrawText("S-Wave Unlimited", 5*gameScale, 37*gameScale, 40, WHITE);
+                    DrawText("Play the game or see the leaderboard!", 5*gameScale, 50*gameScale, 20, GRAY);
                     
                 } break;
                 case GAMEPLAY:
                 { 
 
 		    // DRAW THE GAME
+		    std::string s = std::to_string((int)score);
 		    //Recives the correct position modifers from the function
 		    aniTrio = BackgroundAnimation(aniTrio.timer, aniTrio.houseCycle, aniTrio.skyCycle );
 		    
@@ -516,10 +542,17 @@ int main(void)
 		    // Draws the Background and Houses
 		    DrawTextureEx(backgroundSprites[aniTrio.skyCycle], backgroundPosition, 0, gridScale, (Color){255,255,255,255});
 		    DrawTextureEx(backgroundHouseSprite, housePosition, 0, gridScale, (Color){255,255,255,255});
+		    
+		    // Draw bar
+		    DrawTextureEx(barSprite, barPosition, 0, gridScale, (Color){255,255,255,255});
 
-			// Draw bar
-			DrawTextureEx(barSprite, barPosition, 0, gridScale, (Color){255,255,255,255});
-			
+		    // Draw Score Bar
+		    DrawTextureEx(scoreSprite, scorePosition, 0, gridScale, (Color){255,255,255,255});
+
+		    // Draw Score Text
+		    DrawText("SCORE:", (screenWidth/2)-25*gameScale , (screenHeight/2) - 105* gameScale, 35, (Color){219,21,206,255});
+		    DrawText(s.c_str(), (screenWidth/2)-25*gameScale , (screenHeight/2) - 92* gameScale, 35, (Color){219,21,206,255});
+
 			// Draw rectangle in bar depending on score
 			int barHeight = (int)(151 * gameScale * currentScore / 1000);
 			DrawRectangleGradientV(barPosition.x + cellOffset * gameScale, barPosition.y + 152 * gameScale - barHeight, 30, barHeight, ORANGE, RED);
@@ -581,6 +614,8 @@ int main(void)
                 } break;
                 case ENDING: 
                 {
+
+		    std::string s = std::to_string((int)score);
 		    //Recives the correct position modifers from the function
 		    aniTrio = BackgroundAnimation(aniTrio.timer, aniTrio.houseCycle, aniTrio.skyCycle );
 		    
@@ -592,8 +627,20 @@ int main(void)
 		    DrawTextureEx(backgroundSprites[aniTrio.skyCycle], backgroundPosition, 0, gridScale, (Color){255,255,255,255});
 		    DrawTextureEx(backgroundHouseSprite, housePosition, 0, gridScale, (Color){255,255,255,255});
 
-		    DrawRectangle((screenWidth/2) - (80* gameScale), 100*gameScale, 160*gameScale, 30*gameScale, (Color){0,0,0,255});
-                    DrawText("200'000", (screenWidth/2) - (75* gameScale), 103*gameScale, 80, WHITE);
+		    DrawTextureEx(scoreSprite, Vector2 {(screenWidth/2) - (90* gameScale), 57*gameScale}, 0, gridScale*3, (Color){255,255,255,255});
+		    
+		    //DrawRectangle((screenWidth/2) - (55* gameScale), 100*gameScale, 112*gameScale, 30*gameScale, (Color){0,0,0,255});
+		    DrawText("SCORE:", (screenWidth/2) - (50* gameScale), 30*gameScale, 80, (Color){219,21,206,255});
+		    DrawText(s.c_str(), (screenWidth/2) - (85* gameScale), 70*gameScale, 160, (Color){219,21,206,255});
+
+		    //Draws the button shadow
+		    DrawRectangle( (screenWidth/2) - 49*gameScale, (screenHeight/3)* 2+1*gameScale, 41*gameScale, 21*gameScale, (Color){0,0,0,64});
+		    DrawRectangle( (screenWidth/2) + 11*gameScale, (screenHeight/3)* 2+1*gameScale, 41*gameScale, 21*gameScale, (Color){0,0,0,64});
+
+		    //Draws the buttons
+		    DrawTextureEx(buttonSprites[2], Vector2 {(screenWidth/2) - 50*gameScale, (screenHeight/3)*2}, 0, gridScale, (Color){255,255,255,255});
+		    DrawTextureEx(buttonSprites[3], Vector2 {(screenWidth/2) + 10*gameScale, (screenHeight/3)*2}, 0, gridScale, (Color){255,255,255,255});
+
 		    
                 } break;
                 default: break;
@@ -621,11 +668,11 @@ int main(void)
     {
 	UnloadTexture(backgroundSprites[i]);
     }
-        for(int i = 0; i < 2; i++)
+    for(int i = 0; i < 4; i++)
     {
 	UnloadTexture(buttonSprites[i]);
     }
-    
+    UnloadTexture(scoreSprite);
     UnloadTexture(dadzLogoSprite);
     UnloadTexture(sWaveLogoSprite);
     UnloadTexture(presLogoSprite);
