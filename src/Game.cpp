@@ -27,7 +27,7 @@
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
-typedef enum GameScreen { LOGO = 0, SPLASH = 1,TITLE = 2, GAMEPLAY = 3, ENDING = 4} GameScreen;
+typedef enum GameScreen { LOGO = 0, SPLASH = 1,TITLE = 2, GAMEPLAY = 3, SCORE = 4, ENDING = 5} GameScreen;
 
 struct Symbol
 {
@@ -312,7 +312,7 @@ int main(void)
                 }
 		else if( (IsGestureDetected(GESTURE_TAP) &&  MouseRightPos( GetMouseX(),  GetMouseY(), (screenWidth/2) + 10*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale)))
                 {
-		    targetScreen = GAMEPLAY;
+		    targetScreen = SCORE;
                     currentScreen = SPLASH;
 		    currentScore = 200;
 		    currentBeat = 0;
@@ -437,8 +437,30 @@ int main(void)
 			    targetScreen = ENDING;
 			    currentScreen = SPLASH;
 			}
-            
-			} break;
+			
+	    } break;
+	    case SCORE: 
+            {
+                // TODO: Update TITLE screen variables here!
+
+                // Press enter or the button to change the screen 
+      
+		if( (IsGestureDetected(GESTURE_TAP) &&  MouseRightPos( GetMouseX(),  GetMouseY(), (screenWidth/2) - 50*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale)))
+                {
+		    targetScreen = TITLE;
+                    currentScreen = SPLASH;
+		    currentScore = 200;
+		    currentBeat = 0;
+                }
+		else if( (IsGestureDetected(GESTURE_TAP) &&  MouseRightPos( GetMouseX(),  GetMouseY(), (screenWidth/2) + 10*gameScale, (screenHeight/3)*2, 40*gameScale, 20*gameScale)))
+                {
+		    targetScreen = GAMEPLAY;
+                    currentScreen = SPLASH;
+		    currentScore = 200;
+		    currentBeat = 0;
+                }
+
+            } break;
             case ENDING: 
             {
                 // TODO: Update ENDING screen variables here!
@@ -612,7 +634,53 @@ int main(void)
 		    }
 
                 } break;
-                case ENDING: 
+	        case SCORE:
+		{
+		    std::string s = std::to_string((int)score);
+		    //Recives the correct position modifers from the function
+		    aniTrio = BackgroundAnimation(aniTrio.timer, aniTrio.houseCycle, aniTrio.skyCycle );
+		    
+		    // Applies the houseCycle modifer to the house textture pos
+		    float houseY =  ((22 * gameScale)*sinf(aniTrio.houseCycle/30.55775f))+22*gameScale;
+		    Vector2 housePosition = (Vector2) {0, houseY}; 
+
+		    //Draws the Background and Houses
+		    DrawTextureEx(backgroundSprites[aniTrio.skyCycle], backgroundPosition, 0, gridScale, (Color){255,255,255,255});
+		    DrawTextureEx(backgroundHouseSprite, housePosition, 0, gridScale, (Color){255,255,255,255});
+
+		    for(int i = 0; i < 10; i++)
+		    {
+			if (i % 2 == 0)
+			{
+			    DrawTextureEx(scoreSprite, Vector2 {(screenWidth/2) - (65* gameScale), (10*gameScale) + i/2*25*gameScale}, 0, gridScale, (Color){255,255,255,255});
+			}
+			DrawText("SCORE:", (screenWidth/2) - (50* gameScale), (10*gameScale) + (i*25*gameScale), 20, (Color){219,21,206,255});
+			DrawText(s.c_str(), (screenWidth/2) - (85* gameScale),(10*gameScale) + (i* 70*gameScale), 20, (Color){219,21,206,255});
+
+		    }
+
+		    for(int i = 0; i < 10; i++)
+		    {
+			if (i % 2 == 0)
+			{
+			    DrawTextureEx(scoreSprite, Vector2 {(screenWidth/2) + (5* gameScale), (10*gameScale) + i/2*25*gameScale}, 0, gridScale, (Color){255,255,255,255});
+			}
+			
+		    
+			DrawText("SCORE:", (screenWidth/2) - (50* gameScale), (10*gameScale) + (i*25*gameScale), 20, (Color){219,21,206,255});
+			DrawText(s.c_str(), (screenWidth/2) - (85* gameScale),(10*gameScale) + (i* 70*gameScale), 20, (Color){219,21,206,255});
+
+		    }
+		    
+		    //Draws the button shadow
+		    DrawRectangle( (screenWidth/2) - 49*gameScale, (screenHeight/3)* 2+1*gameScale, 41*gameScale, 21*gameScale, (Color){0,0,0,64});
+		    DrawRectangle( (screenWidth/2) + 11*gameScale, (screenHeight/3)* 2+1*gameScale, 41*gameScale, 21*gameScale, (Color){0,0,0,64});
+
+		    //Draws the buttons
+		    DrawTextureEx(buttonSprites[0], Vector2 {(screenWidth/2) - 50*gameScale, (screenHeight/3)*2}, 0, gridScale, (Color){255,255,255,255});
+		    DrawTextureEx(buttonSprites[3], Vector2 {(screenWidth/2) + 10*gameScale, (screenHeight/3)*2}, 0, gridScale, (Color){255,255,255,255});
+		} break;
+	        case ENDING: 
                 {
 
 		    std::string s = std::to_string((int)score);
