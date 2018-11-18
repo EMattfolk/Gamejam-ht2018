@@ -523,8 +523,8 @@ int main(void)
 		    //Draws both the button text and Background text
 		    // DrawText("RUN", (screenWidth/2) - 49*gameScale, (screenHeight/3)* 2+gameScale, 58, (Color){233,0,132,255});
                     // DrawText("SCORE", (screenWidth/2) + 11*gameScale, ((screenHeight/3)+7) * 2+gameScale, 34, (Color){233,0,132,255});
-		    DrawText("S-Wave Unlimited", 3*gameScale, 37*gameScale, 40, WHITE);
-                    DrawText("Play the game or see the leaderboard!", 3*gameScale, 50*gameScale, 20, GRAY);
+		    DrawText("S-Wave Unlimited", 5*gameScale, 37*gameScale, 40, WHITE);
+                    DrawText("Play the game or see the leaderboard!", 5*gameScale, 50*gameScale, 20, GRAY);
                     
                 } break;
                 case GAMEPLAY:
