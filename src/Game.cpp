@@ -324,50 +324,47 @@ int main(void)
                 }
 				else if (IsMouseButtonDown(0))
 				{
-					/* EXPERIMENTAL DO NOT TOUCH
 					Vector2 holdCell = GetGridPosition(GetMousePosition(), gridPosition, cellOffset, cellSize, gridScale, gridWidth, gridHeight);
-					if (holdCell.x != lastHeldCell.x || holdCell.y != lastHeldCell.y)
+					grid[(int)lastHeldCell.x][(int)lastHeldCell.y].target_pos = lastHeldCell;
+					if (IsValidMove(clickedCell, holdCell))
 					{
-						grid[(int)holdCell.x][(int)holdCell.y].target_pos = grid[(int)lastHeldCell.x][(int)lastHeldCell.y].position;
-						grid[(int)lastHeldCell.x][(int)lastHeldCell.y].target_pos = grid[(int)holdCell.x][(int)holdCell.y].position;
+						grid[(int)holdCell.x][(int)holdCell.y].target_pos = clickedCell;
+						grid[(int)clickedCell.x][(int)clickedCell.y].target_pos = holdCell;
 					}
-					if (holdCell.x != clickedCell.x && holdCell.y != clickedCell.y && IsValidMove(clickedCell, holdCell))
+					else
 					{
-						grid[(int)holdCell.x][(int)holdCell.y].target_pos = grid[(int)clickedCell.x][(int)clickedCell.y].position;
-						grid[(int)clickedCell.x][(int)clickedCell.y].target_pos = grid[(int)holdCell.x][(int)holdCell.y].position;
+						grid[(int)clickedCell.x][(int)clickedCell.y].target_pos = clickedCell;
 					}
+
 					lastHeldCell = holdCell;
-					*/
 				}
 				else if (IsMouseButtonReleased(0))
 				{
 					Vector2 releasedCell = GetGridPosition(GetMousePosition(), gridPosition, cellOffset, cellSize, gridScale, gridWidth, gridHeight);
 
+					int cx, cy, rx, ry;
+					cx = (int)clickedCell.x; 
+					cy = (int)clickedCell.y; 
+					rx = (int)releasedCell.x; 
+					ry = (int)releasedCell.y; 
+
 					if (IsValidMove(clickedCell, releasedCell))
 					{
-						int cx, cy, rx, ry;
-						cx = (int)clickedCell.x; 
-						cy = (int)clickedCell.y; 
-						rx = (int)releasedCell.x; 
-						ry = (int)releasedCell.y; 
-
 						Symbol temp = grid[cx][cy];
 						grid[cx][cy] = grid[rx][ry];
 						grid[rx][ry] = temp;
 
 						streaks = GetStreaks(grid, gridWidth, gridHeight);
-						if (streaks.size())
-						{
-							grid[cx][cy].target_pos = grid[rx][ry].position;
-							grid[rx][ry].target_pos = grid[cx][cy].position;
-						}
-						else
+						if (!streaks.size())
 						{
 							temp = grid[cx][cy];
 							grid[cx][cy] = grid[rx][ry];
 							grid[rx][ry] = temp;
 						}
 					}
+
+					grid[rx][ry].target_pos = releasedCell;
+					grid[cx][cy].target_pos = clickedCell;
 				}
 				else
 				{
