@@ -75,7 +75,7 @@ int main(void)
     const int screenHeight = 214 *gameScale;
     const int symbolCount = 4;
     const int symbolOffset = 1;
-    const float symbolSpeed = 1.0f/16;
+    const float symbolSpeed = 1.0f/8;
     const int gridWidth = 5;
     const int gridHeight = 8;
     const float gridScale = 3.0f;
@@ -133,6 +133,9 @@ int main(void)
 	// The cell that was last clicked
 	// -1, -1 means there was no cell
 	Vector2 clickedCell = (Vector2){-1, -1};
+	
+	// The last cell that was held
+	Vector2 lastHeldCell = (Vector2){-1, -1};
 
 	// Inialize the different scores
 	float currentScore = 200, score = 0;
@@ -232,7 +235,7 @@ int main(void)
                 {
 		    targetScreen = GAMEPLAY;
                     currentScreen = SPLASH;
-
+					currentScore = 200;
                 } 
 
             } break;
@@ -247,10 +250,24 @@ int main(void)
                 if (IsMouseButtonPressed(0))
                 {
 					clickedCell = GetGridPosition(GetMousePosition(), gridPosition, cellOffset, cellSize, gridScale, gridWidth, gridHeight);
+					lastHeldCell = clickedCell;
                 }
 				else if (IsMouseButtonDown(0))
 				{
-					// Do nothing yet...
+					/* EXPERIMENTAL DO NOT TOUCH
+					Vector2 holdCell = GetGridPosition(GetMousePosition(), gridPosition, cellOffset, cellSize, gridScale, gridWidth, gridHeight);
+					if (holdCell.x != lastHeldCell.x || holdCell.y != lastHeldCell.y)
+					{
+						grid[(int)holdCell.x][(int)holdCell.y].target_pos = grid[(int)lastHeldCell.x][(int)lastHeldCell.y].position;
+						grid[(int)lastHeldCell.x][(int)lastHeldCell.y].target_pos = grid[(int)holdCell.x][(int)holdCell.y].position;
+					}
+					if (holdCell.x != clickedCell.x && holdCell.y != clickedCell.y && IsValidMove(clickedCell, holdCell))
+					{
+						grid[(int)holdCell.x][(int)holdCell.y].target_pos = grid[(int)clickedCell.x][(int)clickedCell.y].position;
+						grid[(int)clickedCell.x][(int)clickedCell.y].target_pos = grid[(int)holdCell.x][(int)holdCell.y].position;
+					}
+					lastHeldCell = holdCell;
+					*/
 				}
 				else if (IsMouseButtonReleased(0))
 				{
@@ -314,13 +331,21 @@ int main(void)
 					{
 						if (MarkStreak(grid, *it))
 						{
-							ModifyScore(&score, &currentScore, 0, (*it).length);
+							ModifyScore(&score, &currentScore, secsPerFrame, (*it).length);
 						}
 					}
 					RespawnSymbols(grid, gridWidth, gridHeight, symbolCount);
 				}
 
-            } break;
+			ModifyScore(&score, &currentScore, framesCounter * secsPerFrame, 0);
+
+			// When done go to end screen
+			if (currentScore < 0)
+			{
+				currentScreen = ENDING;
+			}
+            
+			} break;
             case ENDING: 
             {
                 // TODO: Update ENDING screen variables here!
@@ -789,6 +814,9 @@ void ModifyScore(float *score, float *currentScore, float gameTime, int combo)
 		*score += 200 * multiplier;
 		*currentScore += 200;
 	}
+	float rateMultiplier = 1.0f + *currentScore / 1000;
+	// Remove rate from currentScore
+	*currentScore -= GetScoreRate(gameTime) * rateMultiplier;
 	// Clamp current score
 	if (*currentScore > 1000)
 	{
@@ -799,5 +827,5 @@ void ModifyScore(float *score, float *currentScore, float gameTime, int combo)
 // Returns the rate at which the current score is decreasing
 float GetScoreRate (float time)
 {
-	return time - 10;
+	return pow(time, 0.5f) / 60;
 }
