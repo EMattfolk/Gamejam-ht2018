@@ -20,6 +20,7 @@
 #include "stdlib.h"
 #include "time.h"
 #include <iostream>
+#include <fstream>
 #include <vector>
 
 //----------------------------------------------------------------------------------
@@ -95,6 +96,17 @@ int main(void)
     intTrio aniTrio = {0,0,0};
     GameScreen targetScreen = TITLE;
 
+	// Initialize beat timings
+	std::vector<float> beats = {};
+	std::ifstream beatFile;
+	beatFile.open("src/Songs_TxtBeat/time_list_avicii_levels.txt");
+	while (!beatFile.eof())
+	{
+		float temp;
+		beatFile >> temp;
+		std::cout << temp << std::endl;
+		beats.push_back(temp);
+	}
 
     // Initalize the grid, element access with [x][y]
     Symbol grid[gridWidth][gridHeight] = {};
