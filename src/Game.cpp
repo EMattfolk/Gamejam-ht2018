@@ -98,15 +98,20 @@ int main(void)
 
 	// Initialize beat timings
 	std::vector<float> beats = {};
-	std::ifstream beatFile;
-	beatFile.open("src/Songs_TxtBeat/time_list_avicii_levels.txt");
-	while (!beatFile.eof())
+	//std::ifstream beatFile;
+	//beatFile.open("src/Songs_TxtBeat/time_list_avicii_levels.txt");
+	int beatn = 1;
+	while (beatn <= 190)
 	{
-		float temp;
-		beatFile >> temp;
-		std::cout << temp << std::endl;
-		beats.push_back(temp);
+		//float temp;
+		//beatFile >> temp;
+		//if (beatn % 2 == 0) 
+		beats.push_back(beatn * (1 / 1.05f));
+		beatn++;
 	}
+
+	// Set the current beat
+	int currentBeat = 0;
 
     // Initalize the grid, element access with [x][y]
     Symbol grid[gridWidth][gridHeight] = {};
@@ -182,6 +187,8 @@ int main(void)
 	Texture2D backgroundHouseSprite = LoadTexture("src/sprites/buildings.png");
 
 	Texture2D barSprite = LoadTexture("src/sprites/bar_sprite.png");
+
+	Texture2D beatSprite = LoadTexture("src/sprites/beat_sprite.png");
 
 	Texture2D upArrowSprite = LoadTexture("src/sprites/arrow_up_sprite.png");
 
@@ -352,7 +359,7 @@ int main(void)
 			ModifyScore(&score, &currentScore, framesCounter * secsPerFrame, 0);
 
 			// When done go to end screen
-			if (currentScore < 0)
+			if (currentScore < 0 || currentBeat == beats.size())
 			{
 				currentScreen = ENDING;
 			}
@@ -471,6 +478,25 @@ int main(void)
 			{
 				arrowPos = (Vector2){ barPosition.x + 2 * gameScale, barPosition.y + 152 * gameScale - barHeight + 2 * gameScale};
 				DrawTextureEx(downArrowSprite, arrowPos, 0, gridScale, (Color){255,255,255,255});
+			}
+
+			// Draw beat indicators
+			float currentTime = secsPerFrame * framesCounter;
+			for (int b = currentBeat; b < beats.size(); b++)
+			{
+				if (beats[b] < currentTime)
+				{
+					currentBeat++;
+					continue;
+				}
+				float delta = beats[b] - currentTime;
+				if (delta < 2)
+				{
+					Vector2 beatPosition1 = (Vector2){ barPosition.x - 10 * gameScale - (int)(35 * delta * gameScale), barPosition.y + 51 * gameScale};
+					Vector2 beatPosition2 = (Vector2){ gridPosition.x + 96 * gameScale + (int)(35 * delta * gameScale), barPosition.y + 51 * gameScale};
+					DrawTextureEx(beatSprite, beatPosition1, 0, gridScale, (Color){255,255,255,255});
+					DrawTextureEx(beatSprite, beatPosition2, 0, gridScale, (Color){255,255,255,255});
+				}
 			}
 
 		    // DRAW THE GRID
